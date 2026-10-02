@@ -96,7 +96,7 @@ export default function AnswersPage() {
     updateAnswersConfirmed();
     const change = finalizeAnalysis(a.id);
     setStage(a.id, "results");
-    toast(change ? `Results ready. Exam Pilot updated your plan: ${change.summary}` : "Results ready.", "good", undefined, 6000);
+    toast(change ? `Results ready. Student OS updated your plan: ${change.summary}` : "Results ready.", "good", undefined, 6000);
     router.push(`/analyzer/${a.id}/results`);
   };
   const updateAnswersConfirmed = () => useStore.getState().updateAnalysis(a.id, (x) => ({ ...x, answersConfirmedAt: new Date().toISOString() }));

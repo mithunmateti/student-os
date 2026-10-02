@@ -86,7 +86,7 @@ export default function ResultsPage() {
 
       <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
         {change && (
-          <Callout tone="good" icon={Compass} title={`Exam Pilot updated your plan for ${rootExam?.name ?? "your goal exam"}`}
+          <Callout tone="good" icon={Compass} title={`Student OS updated your plan for ${rootExam?.name ?? "your goal exam"}`}
             action={<LinkButton href={`/pilot/${change.examId}`} size="sm">See plan</LinkButton>}>
             {change.summary} {lost > 0 && diagnosed < lost ? "Tag why you lost marks to sharpen it further." : ""}
           </Callout>
@@ -94,7 +94,7 @@ export default function ResultsPage() {
         {lost > 0 && (
           <Callout icon={Stethoscope} title={`${lost} questions lost marks · ${diagnosed} diagnosed`}
             action={<Button variant="primary" size="sm" iconRight={ArrowRight} onClick={() => router.push(`/analyzer/${a.id}/errors`)}>Diagnose</Button>}>
-            A wrong answer isn't automatically a concept gap. Tell Exam Pilot why — it takes about 5 seconds per question.
+            A wrong answer isn't automatically a concept gap. Tell Student OS why — it takes about 5 seconds per question.
           </Callout>
         )}
       </div>

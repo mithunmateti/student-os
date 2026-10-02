@@ -41,8 +41,8 @@ describe("backups", () => {
     expect(back.topics.length).toBe(demo.topics.length);
   });
 
-  it("rejects files that aren't Exam Pilot backups with a clear message", () => {
-    expect(() => parseBackup(JSON.stringify({ hello: "world" }))).toThrow("isn't an Exam Pilot backup");
+  it("rejects files that aren't Student OS backups with a clear message", () => {
+    expect(() => parseBackup(JSON.stringify({ hello: "world" }))).toThrow("isn't an Student OS backup");
     expect(() => parseBackup("not json at all")).toThrow();
   });
 
@@ -53,10 +53,10 @@ describe("backups", () => {
       mutate(copy.data);
       return () => parseBackup(JSON.stringify(copy));
     };
-    expect(bad((d) => { (d.tasks as Record<string, unknown>[])[0].dueDate = "<script>"; })).toThrow("isn't a valid Exam Pilot backup");
-    expect(bad((d) => { (d.exams as Record<string, unknown>[])[0].id = 7; })).toThrow("isn't a valid Exam Pilot backup");
-    expect(bad((d) => { d.tasks = "lots"; })).toThrow("isn't a valid Exam Pilot backup");
-    expect(bad((d) => { (d.settings as Record<string, unknown>).theme = "hacker"; })).toThrow("isn't a valid Exam Pilot backup");
+    expect(bad((d) => { (d.tasks as Record<string, unknown>[])[0].dueDate = "<script>"; })).toThrow("isn't a valid Student OS backup");
+    expect(bad((d) => { (d.exams as Record<string, unknown>[])[0].id = 7; })).toThrow("isn't a valid Student OS backup");
+    expect(bad((d) => { d.tasks = "lots"; })).toThrow("isn't a valid Student OS backup");
+    expect(bad((d) => { (d.settings as Record<string, unknown>).theme = "hacker"; })).toThrow("isn't a valid Student OS backup");
     const extra = structuredClone(good);
     extra.data.toggleTask = "not a function";
     extra.data.__proto__ = { polluted: true };

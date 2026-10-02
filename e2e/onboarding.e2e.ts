@@ -43,7 +43,8 @@ afterAll(async () => {
 describe("first-time student on a phone", () => {
   it("1. welcome page offers the two starting points and fits the screen", async () => {
     const { page } = s;
-    await expect(page.getByRole("heading", { name: "Exam Pilot" }).isVisible()).resolves.toBe(true);
+    await page.getByRole("heading", { name: "Student OS" }).waitFor({ timeout: 10_000 });
+    await expect(page.getByRole("heading", { name: "Student OS" }).isVisible()).resolves.toBe(true);
     await expect(page.getByRole("button", { name: "Start with my own exam" }).isEnabled()).resolves.toBe(true);
     await expect(page.getByRole("button", { name: "Try it with sample data" }).isEnabled()).resolves.toBe(true);
     expect(await sideOverflow(page)).toBeLessThanOrEqual(0);

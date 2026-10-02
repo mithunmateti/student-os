@@ -53,11 +53,11 @@ export default function Landing() {
       <main className="mx-auto flex min-h-dvh max-w-[430px] flex-col px-4 pt-[calc(env(safe-area-inset-top)+48px)] pb-[calc(env(safe-area-inset-bottom)+24px)]">
         <div className="flex flex-col items-center text-center">
           <AppIcon />
-          <h1 className="mt-5 text-[38px] leading-[44px] font-black tracking-[-0.4px]">Exam Pilot</h1>
+          <h1 className="mt-5 text-[38px] leading-[44px] font-black tracking-[-0.4px]">Student OS</h1>
           <p className="mt-2 max-w-[300px] text-[17px] text-fg-3">Plan your study, analyze every test, and fix the mistakes that cost you marks.</p>
         </div>
 
-        <ul className="mt-9 overflow-hidden rounded-[22px] bg-surface" aria-label="What Exam Pilot does">
+        <ul className="mt-9 overflow-hidden rounded-[22px] bg-surface" aria-label="What Student OS does">
           {[
             { icon: CalendarDays, title: "A plan for every day", sub: "Built from your syllabus and exam date" },
             { icon: ScanSearch, title: "Analyze every test", sub: "See exactly where each mark went" },

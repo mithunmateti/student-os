@@ -125,7 +125,7 @@ export default function NewExamPage() {
   return (
     <div className="animate-in">
       <PageHeader eyebrow="My Exams" title={isMock ? "Add a mock / practice test" : "Create an exam"}
-        subtitle={isMock ? "Mock tests share the goal exam's syllabus and feed its plan when analyzed." : "Set the date, syllabus and marking. Exam Pilot builds your daily plan from this."} />
+        subtitle={isMock ? "Mock tests share the goal exam's syllabus and feed its plan when analyzed." : "Set the date, syllabus and marking. Student OS builds your daily plan from this."} />
       {first && !isMock && (
         <Callout tone="accent" icon={Target} className="mb-6" title="Start with the exam you're preparing for">
           Give it a name and date, then import your syllabus (a PDF or photo works) or add your subjects and chapters. Everything is editable later.

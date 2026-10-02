@@ -87,7 +87,7 @@ export default function ReportPage() {
           <Button size="sm" icon={Printer} onClick={() => window.print()}>Print / PDF</Button>
           <Button size="sm" icon={FileText} onClick={() => download(`${slug(a.title)}-report.md`, reportMarkdown(a, cats, ctx.recs, ctx.prev), "text/markdown")}>Markdown</Button>
           <Button size="sm" icon={FileSpreadsheet} onClick={() => download(`${slug(a.title)}-questions.csv`, questionsCsv(a, cats), "text/csv")}>CSV</Button>
-          <Button size="sm" icon={Braces} onClick={() => download(`${slug(a.title)}.json`, JSON.stringify({ app: "exam-pilot", kind: "analysis", analysis: a, score: { ...s, results: undefined, byId: undefined } }, null, 2), "application/json")}>Exam data</Button>
+          <Button size="sm" icon={Braces} onClick={() => download(`${slug(a.title)}.json`, JSON.stringify({ app: "student-os", kind: "analysis", analysis: a, score: { ...s, results: undefined, byId: undefined } }, null, 2), "application/json")}>Exam data</Button>
         </div>
       </div>
 
@@ -227,7 +227,7 @@ export default function ReportPage() {
         ) : <p className="text-sm text-fg-3">Nothing added yet. Wrong answers you diagnose are added automatically (except pure guesses).</p>}
       </Section>
 
-      <Section n={10} title="Recommended next study actions" subtitle="Generated from the evidence below — and already scheduled in Exam Pilot">
+      <Section n={10} title="Recommended next study actions" subtitle="Generated from the evidence below — and already scheduled in Student OS">
         {ctx.recs.length ? (
           <ol className="space-y-3">
             {ctx.recs.map((r, i) => {

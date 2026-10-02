@@ -1,8 +1,8 @@
 {
-  "name": "exam-pilot",
+  "name": "student-os",
   "version": "1.0.0",
   "private": true,
-  "description": "Exam Pilot — unified exam preparation + exam analysis platform (local-first).",
+  "description": "Student OS — unified exam preparation + exam analysis platform (local-first).",
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",

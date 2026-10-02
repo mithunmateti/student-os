@@ -6,7 +6,7 @@ import { Button } from "@/components/ui";
 
 export default function AppError({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
   useEffect(() => {
-    console.error("Exam Pilot screen error:", error.message);
+    console.error("Student OS screen error:", error.message);
   }, [error]);
   return (
     <div className="card mx-auto mt-10 max-w-lg p-8 text-center" role="alert">

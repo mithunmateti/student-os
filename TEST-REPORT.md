@@ -1,4 +1,4 @@
-# Exam Pilot — test report
+# Student OS — test report
 
 ## Update (2026-10-02, later): tested in Safari's engine
 

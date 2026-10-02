@@ -126,9 +126,9 @@ export default function SettingsPage() {
       <Card>
         <CardHeader icon={Database} title="Your data" subtitle={`${counts.exams} exams · ${counts.analyses} analyses · ${counts.notebook} notebook entries · ${counts.tasks} tasks${storage ? ` · ${storage}` : ""}`} />
         <div className="space-y-4 px-5 pb-5">
-          <Callout icon={Database}>Exam Pilot is local-first: nothing leaves this browser unless you export it. Clearing browser data deletes it — export a backup regularly.</Callout>
+          <Callout icon={Database}>Student OS is local-first: nothing leaves this browser unless you export it. Clearing browser data deletes it — export a backup regularly.</Callout>
           <div className="flex flex-wrap gap-2">
-            <Button icon={Download} variant="primary" onClick={() => { download(`exam-pilot-backup-${new Date().toISOString().slice(0, 10)}.json`, backupJson(getData()), "application/json"); toast("Backup downloaded"); }}>Export full backup</Button>
+            <Button icon={Download} variant="primary" onClick={() => { download(`student-os-backup-${new Date().toISOString().slice(0, 10)}.json`, backupJson(getData()), "application/json"); toast("Backup downloaded"); }}>Export full backup</Button>
             <Button icon={Upload} onClick={() => fileRef.current?.click()}>Restore from backup</Button>
             <Button icon={Download} onClick={() => { const d = getData(); download("error-notebook.csv", notebookCsv(d.notebook, d.analyses, d.settings.errorCategories), "text/csv"); }}>Export Error Notebook (CSV)</Button>
             <input ref={fileRef} type="file" accept="application/json,.json" className="sr-only" aria-hidden tabIndex={-1} onChange={async (e) => {
@@ -154,7 +154,7 @@ export default function SettingsPage() {
       <ConfirmDialog open={confirm === "demo"} onClose={() => setConfirm(null)} danger={!isDemo} confirmLabel="Load demo" title="Replace your data with demo data?"
         description="This replaces everything in this browser with the JEE demo (four analyzed tests and a plan). Export a backup first if you want to keep your data."
         onConfirm={() => { useStore.getState().loadDemo(); toast("Demo data loaded"); router.push("/dashboard"); }} />
-      <ConfirmDialog open={confirm === "reset"} onClose={() => setConfirm(null)} danger confirmLabel="Delete everything" title="Delete all Exam Pilot data?"
+      <ConfirmDialog open={confirm === "reset"} onClose={() => setConfirm(null)} danger confirmLabel="Delete everything" title="Delete all Student OS data?"
         description="All exams, analyses, plans and notebook entries in this browser will be permanently deleted, and your saved Gemini API key is removed. This can't be undone."
         onConfirm={() => { useStore.getState().startFresh(settings.studentName); setUserApiKey(null); toast("All data deleted"); router.push("/dashboard"); }} />
       <ConfirmDialog open={confirm === "import"} onClose={() => { setConfirm(null); setPending(null); }} danger confirmLabel="Restore" title="Restore this backup?"

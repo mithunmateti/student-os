@@ -39,13 +39,13 @@ const isActive = (path: string, href: string, match?: string[]) =>
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <Link href="/dashboard" className={cn("flex items-center gap-2.5", className)} aria-label="Exam Pilot home">
+    <Link href="/dashboard" className={cn("flex items-center gap-2.5", className)} aria-label="Student OS home">
       <svg viewBox="0 0 32 32" className="size-8 shrink-0" aria-hidden>
         <rect width="32" height="32" rx="10" fill="var(--accent)" />
         <path d="M9 21.5 16 8l7 13.5-7-3.2z" fill="#fff" />
         <circle cx="16" cy="24.5" r="1.6" fill="#fff" opacity=".7" />
       </svg>
-      <span className="text-[17px] font-bold tracking-tight">Exam Pilot</span>
+      <span className="text-[17px] font-bold tracking-tight">Student OS</span>
     </Link>
   );
 }

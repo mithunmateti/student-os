@@ -1,5 +1,5 @@
 /**
- * Exam Pilot domain model.
+ * Student OS domain model.
  *
  * The Exam is the shared parent object. Preparation (syllabus topics, study tasks,
  * revision items) and post-exam analysis (papers, questions, responses, error tags)

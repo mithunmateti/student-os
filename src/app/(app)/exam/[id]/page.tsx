@@ -99,7 +99,7 @@ function GoalOverview({ exam, onOpenSyllabus }: { exam: Exam; onOpenSyllabus: ()
   if (!my.length) {
     return (
       <Card><EmptyState icon={BookOpen} title="Add a syllabus to get a plan" action={<Button variant="primary" onClick={onOpenSyllabus}>Open syllabus</Button>}>
-        Exam Pilot plans around your topics. Import a syllabus or add chapters manually.
+        Student OS plans around your topics. Import a syllabus or add chapters manually.
       </EmptyState></Card>
     );
   }

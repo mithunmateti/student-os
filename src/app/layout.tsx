@@ -3,9 +3,9 @@ import { Toaster } from "@/components/ui";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "Exam Pilot", template: "%s · Exam Pilot" },
+  title: { default: "Student OS", template: "%s · Student OS" },
   description: "Plan your preparation, analyze every exam, and turn mistakes into your next study plan.",
-  applicationName: "Exam Pilot",
+  applicationName: "Student OS",
 };
 
 export const viewport: Viewport = {

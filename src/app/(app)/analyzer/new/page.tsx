@@ -404,7 +404,7 @@ export default function NewAnalysisPage() {
           <Card className="p-5">
             <h2 className="text-sm font-semibold">What happens next</h2>
             <ol className="mt-3 space-y-2.5 text-sm text-fg-2">
-              {["Review extracted questions & key — fix anything flagged", "Confirm the marking scheme", "Enter your answers in a fast grid", "See results, then tag why you lost marks", "Your Exam Pilot plan updates automatically"].map((s, i) => (
+              {["Review extracted questions & key — fix anything flagged", "Confirm the marking scheme", "Enter your answers in a fast grid", "See results, then tag why you lost marks", "Your Student OS plan updates automatically"].map((s, i) => (
                 <li key={s} className="flex gap-2.5"><span className="grid size-5 shrink-0 place-items-center rounded-full bg-surface-3 text-[11px] font-semibold">{i + 1}</span>{s}</li>
               ))}
             </ol>

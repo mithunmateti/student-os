@@ -27,6 +27,8 @@ const SYNC_KEY = "exam-pilot-sync";
 type SyncMsg = { tab: string; at: number };
 let channel: BroadcastChannel | null = null;
 let applyingRemote = false;
+/** Set while saving data that is already on disk (e.g. right after loading it). */
+let quietWrites = false;
 let lastSeen = 0;
 let onRemote: (() => Promise<void> | void) | null = null;
 
@@ -62,6 +64,16 @@ function readPing(): SyncMsg | null {
     return JSON.parse(localStorage.getItem(SYNC_KEY) ?? "null");
   } catch {
     return null;
+  }
+}
+
+/** Runs `fn` with any resulting save marked quiet: no "unsaved changes" warning, no ping to other tabs. */
+export function quietly(fn: () => void) {
+  quietWrites = true;
+  try {
+    fn();
+  } finally {
+    quietWrites = false;
   }
 }
 
@@ -117,10 +129,11 @@ if (typeof window !== "undefined") {
     if (document.visibilityState === "hidden") void flushNow();
   });
   window.addEventListener("beforeunload", (e) => {
-    if (pending) {
-      void flushNow();
-      e.preventDefault();
-    }
+    if (!pending) return;
+    // Only warn when the student changed something; a quiet re-save holds nothing new.
+    const unsaved = !pending.quiet;
+    void flushNow();
+    if (unsaved) e.preventDefault();
   });
 }
 
@@ -137,7 +150,7 @@ export function createIdbStorage<S>(): PersistStorage<S> {
       return raw ? (JSON.parse(raw) as StorageValue<S>) : null;
     },
     setItem: (name, value) => {
-      pending = { name, value, quiet: applyingRemote && !(pending && !pending.quiet) };
+      pending = { name, value, quiet: (applyingRemote || quietWrites) && !(pending && !pending.quiet) };
       useSaveStatus.setState({ state: "saving" });
       clearTimeout(timer);
       timer = setTimeout(() => void flushNow(), 350);

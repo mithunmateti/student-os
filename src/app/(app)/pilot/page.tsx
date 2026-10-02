@@ -20,7 +20,7 @@ export default function PilotIndex() {
   if (only) return null;
   return (
     <div className="animate-in">
-      <PageHeader title="Exam Pilot" subtitle="Your preparation plans. Each goal exam has its own adaptive daily plan." actions={<LinkButton href="/exams/new" variant="primary" icon={Plus}>Create exam</LinkButton>} />
+      <PageHeader title="Study plan" subtitle="Your preparation plans. Each goal exam has its own adaptive daily plan." actions={<LinkButton href="/exams/new" variant="primary" icon={Plus}>Create exam</LinkButton>} />
       {goals.length ? (
         <div className="grid gap-4 md:grid-cols-2">
           {goals.map((g) => (
@@ -32,7 +32,7 @@ export default function PilotIndex() {
         </div>
       ) : (
         <Card><EmptyState icon={Compass} title="No goal exam yet" action={<LinkButton href="/exams/new" variant="primary" icon={Plus}>Create a goal exam</LinkButton>}>
-          Exam Pilot turns an exam date, syllabus and your study time into a daily plan that adapts to every test you analyze.
+          Student OS turns an exam date, syllabus and your study time into a daily plan that adapts to every test you analyze.
         </EmptyState></Card>
       )}
     </div>

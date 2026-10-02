@@ -279,7 +279,7 @@ function NewUser({ name }: { name: string }) {
         <Card className="p-6">
           <Compass className="size-6 text-accent-text" aria-hidden />
           <h2 className="mt-3 text-lg font-semibold">Plan for an upcoming exam</h2>
-          <p className="mt-1 text-sm text-fg-2">Add the exam date and syllabus. Exam Pilot builds a daily plan with protected revision time.</p>
+          <p className="mt-1 text-sm text-fg-2">Add the exam date and syllabus. Student OS builds a daily plan with protected revision time.</p>
           <ol className="mt-4 space-y-1.5 text-sm text-fg-3">
             <li>1. Create the exam and import your syllabus (a PDF or photo works)</li>
             <li>2. Set your available study time</li>

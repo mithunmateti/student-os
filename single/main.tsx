@@ -36,15 +36,15 @@ import { compile, match, ParamsContext, useLocation } from "./router";
 
 type Layout = "none" | "app" | "analyzer";
 const ROUTES: { def: ReturnType<typeof compile>; page: ComponentType; layout: Layout; title: string }[] = [
-  ["/", Landing, "none", "Exam Pilot"],
+  ["/", Landing, "none", "Student OS"],
   ["/dashboard", Dashboard, "app", "Dashboard"],
   ["/todo", Todo, "app", "To-do"],
   ["/calendar", CalendarPage, "app", "Calendar"],
   ["/exams", Exams, "app", "My Exams"],
   ["/exams/new", NewExam, "app", "Create exam"],
   ["/exam/:id", ExamHub, "app", "Exam"],
-  ["/pilot", PilotIndex, "app", "Exam Pilot"],
-  ["/pilot/:examId", Pilot, "app", "Exam Pilot"],
+  ["/pilot", PilotIndex, "app", "Study plan"],
+  ["/pilot/:examId", Pilot, "app", "Study plan"],
   ["/analyzer", AnalyzerIndex, "app", "Exam Analyzer"],
   ["/analyzer/new", NewAnalysis, "app", "Analyze an exam"],
   ["/analyzer/:analysisId", AnalysisIndex, "analyzer", "Analysis"],
@@ -85,7 +85,7 @@ function App() {
   }
   if (!found) return <NotFoundPage />;
   const { route, params } = found;
-  document.title = route.title === "Exam Pilot" ? "Exam Pilot" : `${route.title} · Exam Pilot`;
+  document.title = route.title === "Student OS" ? "Student OS" : `${route.title} · Student OS`;
   const Page = route.page;
   const page = <Boundary resetKey={path}><Page key={path} /></Boundary>;
   return (

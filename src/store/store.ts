@@ -16,8 +16,9 @@ import type {
   QResponse, Question, Settings, StudyTask, SyllabusTopic,
 } from "@/domain/types";
 import { addDays, today, uid } from "@/domain/util";
-import { createIdbStorage, listenForOtherTabs, THEME_KEY } from "./storage";
+import { createIdbStorage, listenForOtherTabs, quietly, THEME_KEY } from "./storage";
 
+// Storage names keep the app's original "exam-pilot" prefix so data saved before the rename to Student OS still loads.
 const STORE_KEY = "exam-pilot-data";
 const STAGES: AnalysisStage[] = ["review", "marking", "answers", "results", "errors", "report"];
 
@@ -499,8 +500,9 @@ export const useStore = create<Store>()(
       storage: createIdbStorage<AppData>(),
       partialize: (s) => dataOf(s as Store),
       onRehydrateStorage: () => (state, error) => {
-        if (error) console.error("Exam Pilot: could not load saved data", error);
-        useStore.setState({ _hydrated: true });
+        if (error) console.error("Student OS: could not load saved data", error);
+        // Marking the store loaded re-saves the same data; that must not count as an unsaved change.
+        quietly(() => useStore.setState({ _hydrated: true }));
         if (state) applyTheme(state.settings.theme);
       },
       merge: (persisted, current) => {

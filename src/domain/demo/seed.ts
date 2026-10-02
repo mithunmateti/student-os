@@ -300,7 +300,7 @@ export function buildDemoData(todayStr = todayFn()): AppData {
       id: uid("task"), examId: target.id, topicId: t.id, type: h.type as StudyTask["type"], title: h.title, subject: t.subject, chapter: t.chapter, topic: t.topic,
       dueDate: h.date, durationMinutes: h.type === "revision" ? 15 : 40, priority: "medium", status: h.done ? "done" : "pending",
       completedAt: h.done ? `${h.date}T19:30:00.000Z` : undefined,
-      reason: h.source === "analysis" ? "Recurring calculation errors in Kinematics across the last 3 tests." : "Scheduled by Exam Pilot from topic priority.",
+      reason: h.source === "analysis" ? "Recurring calculation errors in Kinematics across the last 3 tests." : "Scheduled by Student OS from topic priority.",
       source: h.source as StudyTask["source"],
     } satisfies StudyTask;
   });

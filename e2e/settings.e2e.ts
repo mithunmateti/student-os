@@ -32,7 +32,7 @@ describe("settings and data", () => {
     const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Export full backup" }).click()]);
     const text = readFileSync((await dl.path())!, "utf8");
     const json = JSON.parse(text);
-    expect(json.app).toBe("exam-pilot");
+    expect(json.app).toBe("student-os");
     expect(json.data.exams.length).toBeGreaterThan(0);
     expect(text).not.toContain("AIza-test-0000");
     await page.evaluate(() => localStorage.removeItem("exam-pilot-gemini-key"));

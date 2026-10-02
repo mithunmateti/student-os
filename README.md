@@ -1,10 +1,10 @@
-# Exam Pilot
+# Student OS
 
 **Know what happened in your exam, why you lost marks, and exactly what to do next.**
 
-Exam Pilot joins two systems into one loop:
+Student OS joins two systems into one loop:
 
-- **Exam Pilot (preparation)** turns an exam date, a syllabus, your study time and your real test results into an explainable daily plan. Revision time is protected, and every task says why it's there.
+- **Study plan (preparation)** turns an exam date, a syllabus, your study time and your real test results into an explainable daily plan. Revision time is protected, and every task says why it's there.
 - **Today, To-do and Calendar** share one set of tasks: tick, add, edit, drag to another day or take a day off anywhere, and every view (and any other open window) updates at once.
 - **Exam Analyzer (post-exam)** imports a question paper and answer key (PDF, photos, pasted text or manual structure). You verify them, confirm any marking scheme, and enter your answers in a fast keyboard grid. It then scores the paper deterministically, helps you diagnose each lost mark, and feeds the findings back into the plan.
 
@@ -66,7 +66,7 @@ The UI follows the Student OS design (`~/Desktop/Student os/HANDOFF.md`):
 
 **Topic to-do list.** Every syllabus topic of a goal exam appears as a to-do item on its plan page. Tick a topic off when it's done (this schedules revision), see when it's next scheduled, and change its difficulty. Hard topics get 90 minutes of first study, medium 60 and easy 45; hard topics also rank higher. The daily plan rebuilds immediately. Study tasks tied to a topic carry the same difficulty picker.
 
-**Exam Pilot plan.** Built from days left, minutes per weekday, blocked dates, topic weightage and difficulty, coverage, marks lost per chapter, recurring error patterns, spacing, overdue work, revision checkpoints, Error Notebook retries and scheduled mocks.
+**Study plan.** Built from days left, minutes per weekday, blocked dates, topic weightage and difficulty, coverage, marks lost per chapter, recurring error patterns, spacing, overdue work, revision checkpoints, Error Notebook retries and scheduled mocks.
 - The topic ranking shows every signal and its points.
 - Final-week mode pauses new low-yield topics.
 - With several goal exams, study time is split by priority and urgency.

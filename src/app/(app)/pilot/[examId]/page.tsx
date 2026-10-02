@@ -80,7 +80,7 @@ export default function PilotPage() {
 
   return (
     <div className="animate-in">
-      <PageHeader eyebrow={<><Link href="/pilot" className="hover:underline">Exam Pilot</Link> · Preparation plan</>} title={exam.name}
+      <PageHeader eyebrow={<><Link href="/pilot" className="hover:underline">Study plan</Link> · Preparation plan</>} title={exam.name}
         actions={<>
           <Button size="sm" icon={SlidersHorizontal} onClick={() => setSettingsOpen(true)}>Study time</Button>
           <Button size="sm" icon={Plus} onClick={() => setAddOpen(true)}>Add task</Button>

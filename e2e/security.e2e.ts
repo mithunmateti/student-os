@@ -81,7 +81,7 @@ describe("security policy", () => {
     const [chooser] = await Promise.all([page.waitForEvent("filechooser"), page.getByRole("button", { name: "Restore from backup" }).click()]);
     await chooser.setFiles({ name: "backup.json", mimeType: "application/json", buffer: Buffer.from(bad) });
     await page.waitForTimeout(600);
-    await expect(page.getByText(/isn.t a valid Exam Pilot backup/i).first().isVisible()).resolves.toBe(true);
+    await expect(page.getByText(/isn.t a valid Student OS backup/i).first().isVisible()).resolves.toBe(true);
     await go(page, "/exams");
     expect(await page.locator('a[href*="/exam/"]').count()).toBeGreaterThan(0); // existing data untouched
   });

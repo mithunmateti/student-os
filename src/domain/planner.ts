@@ -1,5 +1,5 @@
 /**
- * Exam Pilot planning engine.
+ * Student OS planning engine.
  *
  * generatePlan() is deterministic for a given input + `today`: it keeps history and
  * user-owned tasks, carries over unfinished work, protects revision time, schedules
