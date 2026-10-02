@@ -14,7 +14,9 @@ Plan → Study → Practice → Take exam → Analyze → Diagnose → Adapt pla
 
 ## Quick start: just open it
 
-Download **`index.html`** from this repository and double-click it. The whole app runs in your browser from that one file, with no install, no account and no server. Your data stays in that browser (export a backup from Settings to move it).
+**Open the app: https://mithunmateti.github.io/student-os/** (works on phones too; on an iPhone, tap Share → Add to Home Screen).
+
+Or download **`index.html`** from this repository and double-click it. The whole app runs in your browser from that one file, with no install, no account and no server. Your data stays in that browser (export a backup from Settings to move it).
 
 Optional AI help: get a free Google Gemini API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey) and paste it into **Settings → AI assistance**. Each person uses their own key; it is stored only in their browser.
 
