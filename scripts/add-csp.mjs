@@ -24,10 +24,9 @@ if (!hashes.length) throw new Error(`No inline scripts found in ${file}`);
 
 export const policy = [
   "default-src 'none'",
-  // The app itself (by hash), WebAssembly for OCR, the pinned OCR worker/engine scripts, and
-  // blob: for pdf.js, which loads its bundled worker code from a blob the app creates itself.
-  `script-src ${[...new Set(hashes)].join(" ")} 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net/npm/tesseract.js@v${tess}/ https://cdn.jsdelivr.net/npm/tesseract.js-core@v${core}/`,
-  // pdf.js and the OCR engine run in workers created from in-page blobs.
+  // The app itself (by hash), WebAssembly for OCR, and the pinned OCR worker/engine scripts.
+  `script-src ${[...new Set(hashes)].join(" ")} 'wasm-unsafe-eval' https://cdn.jsdelivr.net/npm/tesseract.js@v${tess}/ https://cdn.jsdelivr.net/npm/tesseract.js-core@v${core}/`,
+  // The OCR engine runs in a worker created from an in-page blob (pdf.js runs on the page).
   "worker-src blob:",
   "style-src 'unsafe-inline' https://fonts.googleapis.com",
   "font-src https://fonts.gstatic.com",

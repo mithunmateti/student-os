@@ -335,7 +335,7 @@ function LatestAnalysis({ id }: { id: string }) {
         {change && <p className="text-fg-2">{change.narrative}</p>}
         <div className="flex flex-wrap gap-2">
           {top && (
-            <Badge tone="bad" icon={TriangleAlert}>Biggest loss: {top.chapter} (−{fmtNum(top.forfeited)}{top.dominantError ? `, mostly ${top.dominantError.label.toLowerCase()}` : ""})</Badge>
+            <Badge tone="bad" icon={TriangleAlert} className="max-w-full whitespace-normal">Biggest loss: {top.chapter} (−{fmtNum(top.forfeited)}{top.dominantError ? `, mostly ${top.dominantError.label.toLowerCase()}` : ""})</Badge>
           )}
           {undiagnosed > 0 && <Link href={`/analyzer/${a.id}/errors`} className="inline-flex min-h-9 items-center"><Badge tone="warn">{undiagnosed} mistakes not yet diagnosed →</Badge></Link>}
           {unresolved > 0 && <Link href="/notebook" className="inline-flex min-h-9 items-center"><Badge tone="accent" icon={NotebookPen}>{unresolved} in Error Notebook</Badge></Link>}

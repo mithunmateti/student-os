@@ -104,7 +104,7 @@ describe("PDF uploads", () => {
     await old.page.getByRole("button", { name: "Extract questions" }).click();
     await old.page.waitForURL(/\/review/, { timeout: 30_000 });
     await expect(old.page.getByText(/Answer key: (\d+) of \1 answers matched/).first().isVisible()).resolves.toBe(true);
-    expect(old.errors).toEqual([]);
+    expect(old.errors, old.errors.join(" | ")).toEqual([]);
     await old.ctx.close();
   }, 60_000);
 

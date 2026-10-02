@@ -134,7 +134,7 @@ src/
 - **Server AI routes** (only when the server has `GEMINI_API_KEY`) accept calls from the app's own pages only, cap request size while reading, and rate-limit each visitor (30 requests per 10 minutes).
 - **Your Gemini key** is stored only in this browser (never in backups), sent only to Google in a request header, and removed by "Delete all data". Browsers let every local file opened from disk share storage, so don't open untrusted HTML files in the same browser, and give the key a spending limit at [aistudio.google.com](https://aistudio.google.com/apikey).
 - CSV exports neutralise spreadsheet formulas. `npm audit` reports 0 known vulnerabilities.
-- **Browser support.** Chrome, Edge, Firefox and Safari 16.4+ (macOS and iOS/iPadOS 16.4+). PDF import uses pdf.js's legacy build plus a small fallback (`src/lib/polyfills.ts`) so it works on older Safari, which is tested by removing newer JavaScript features in the browser tests.
+- **Browser support.** Chrome, Edge, Firefox and Safari 16.4+ (macOS and iOS/iPadOS 16.4+). The whole browser suite runs in both Chrome and WebKit, Safari's engine (`npm run test:safari`, after `npx playwright-core install webkit` once). PDF import uses pdf.js's legacy build plus a small fallback (`src/lib/polyfills.ts`) for older Safari, tested by removing newer JavaScript features in the browser.
 
 ## Tests
 

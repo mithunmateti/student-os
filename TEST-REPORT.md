@@ -1,5 +1,15 @@
 # Exam Pilot — test report
 
+## Update (2026-10-02, later): tested in Safari's engine
+
+Ran the full browser suite in **WebKit 26.6** (Safari's engine, via Playwright): first run 46/51. Fixed what it found, then **51/51 in WebKit and 51/51 in Chrome**; 110/110 unit tests.
+
+Safari-only bugs found and fixed:
+- **Dashboard scrolled sideways on iPhone-size screens (50 px).** A screen-reader-only label inside the scrollable "Recent exams" table escaped its box in Safari; every scroll box now contains its children. A long "Biggest loss" badge couldn't wrap with Safari's wider SF Pro Rounded font; it wraps now.
+- **PDF reading logged errors in Safari** (a page opened from disk can't start pdf.js's worker from a blob). pdf.js now runs on the page from the start via its main-thread hook. Side benefit: `blob:` scripts are no longer allowed by the security policy.
+
+Caveat: Playwright's WebKit is Safari's engine, not the Safari app, and it ran on a Mac, not an iPhone.
+
 ## Update (2026-10-02): calendar, to-do list, security hardening
 
 **Final run:** type check clean · **110/110 unit tests** · **51/51 browser tests** · Next.js and single-file builds succeed · `npm audit`: 0 vulnerabilities.

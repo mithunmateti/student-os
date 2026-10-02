@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "postinstall": "node scripts/copy-pdf-worker.mjs",
     "build:single": "vite build --config vite.single.config.mts && node scripts/add-csp.mjs standalone/index.html",
-    "test:e2e": "npm run build:single && vitest run --config vitest.e2e.config.mts"
+    "test:e2e": "npm run build:single && vitest run --config vitest.e2e.config.mts",
+    "test:safari": "npm run build:single && BROWSER=webkit vitest run --config vitest.e2e.config.mts"
   },
   "dependencies": {
     "clsx": "^2.1.1",

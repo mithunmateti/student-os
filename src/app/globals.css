@@ -197,6 +197,14 @@
   }
 }
 
+/* Scroll boxes contain their absolutely positioned children (e.g. screen-reader-only labels in
+   table headers). Without this, Safari lets those escape and the whole page scrolls sideways. */
+@layer base {
+  .overflow-x-auto, .overflow-auto {
+    position: relative;
+  }
+}
+
 @layer components {
   .tabular {
     font-variant-numeric: tabular-nums;

@@ -12,7 +12,7 @@ const isDev = process.env.NODE_ENV === "development";
  */
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net/npm/tesseract.js@v${tess.version}/ https://cdn.jsdelivr.net/npm/tesseract.js-core@v${tessCore.version}/${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net/npm/tesseract.js@v${tess.version}/ https://cdn.jsdelivr.net/npm/tesseract.js-core@v${tessCore.version}/${isDev ? " 'unsafe-eval'" : ""}`,
   "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",

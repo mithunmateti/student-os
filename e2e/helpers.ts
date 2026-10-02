@@ -1,4 +1,4 @@
-import { chromium, type Browser, type BrowserContext, type Page } from "playwright-core";
+import { chromium, webkit, type Browser, type BrowserContext, type Page } from "playwright-core";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -11,7 +11,11 @@ const CHROME = process.env.CHROME_PATH ?? "/Applications/Google Chrome.app/Conte
 export const PHONE = { viewport: { width: 375, height: 812 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true };
 export const LAPTOP = { viewport: { width: 1440, height: 900 } };
 
+/** BROWSER=webkit runs the suite in WebKit, Safari's engine (`npx playwright-core install webkit` first). */
+export const ENGINE = process.env.BROWSER === "webkit" ? "webkit" : "chrome";
+
 export async function launch(): Promise<Browser> {
+  if (ENGINE === "webkit") return webkit.launch({ headless: true });
   if (!existsSync(CHROME)) throw new Error(`Chrome not found at ${CHROME}. Set CHROME_PATH.`);
   return chromium.launch({ executablePath: CHROME, headless: true });
 }

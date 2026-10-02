@@ -55,7 +55,7 @@ async function extractPdf(file: File, ref: FileRef, onProgress?: (msg: string, p
   // The legacy build carries fallbacks for features older Safari lacks; see polyfills.ts.
   applyPdfPolyfills();
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  configurePdfWorker(pdfjs);
+  await configurePdfWorker(pdfjs);
   let doc;
   // Only the text is read: no XFA forms, no fonts or WebAssembly decoders to load, nothing fetched.
   // (The page's security policy also stops a PDF from ever evaluating code.)
