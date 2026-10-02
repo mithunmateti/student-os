@@ -120,6 +120,14 @@ describe("calendar and to-do, connected", () => {
     await phone.ctx.close();
   });
 
+  it("following a link while the app is still starting up lands on the right page", async () => {
+    const { page } = s;
+    await page.goto(APP);
+    await page.goto(`${APP}#/calendar`); // no waiting: the app hasn't finished starting
+    await page.getByRole("heading", { name: "Your month" }).waitFor({ timeout: 10_000 });
+    expect(page.url()).toMatch(/#\/calendar/);
+  });
+
   it("no JavaScript errors", () => {
     expect(s.errors).toEqual([]);
   });

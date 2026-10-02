@@ -1,5 +1,24 @@
 # Student OS — test report
 
+## Update (2026-10-02): your data survives leaving, quitting and power cuts
+
+**Result:** 110/110 unit tests · **57/57 browser tests in Chrome and 57/57 in WebKit** (Safari's engine), run twice each.
+
+New tests use a real on-disk browser profile, then reopen it:
+- close the tab the instant after a change: kept, and no "Leave site?" warning;
+- quit the browser straight after a change: kept;
+- force-kill the whole browser (like a power cut or crash) once a change is saved: kept. Changes reach the disk about 0.15 s after a click;
+- a save cut off half-way: the rescue copy made on the way out is recovered, then cleaned up;
+- Settings shows whether the browser protects the data from automatic clearing.
+
+How it works: writes go to disk immediately after a one-off change and only count once they're on disk ("strict" durability); an instant copy is kept for one-off changes and whenever the page is hidden or closed; start-up uses the newest copy; the app asks for persistent storage; a backup reminder appears every two weeks.
+
+Bugs found on the way, fixed:
+- **App could hang on its loading screen** if the address changed while it was starting (seen after a restart in Safari's engine). The page router now always reads the current address.
+- Start-up could prefer an older saved copy over a newer fallback copy; it now picks the newest.
+
+Limits: nothing can save a change made a split second before the power is cut, before it reaches the disk (about 0.15 s). Clearing the browser's data deletes everything: keep a backup.
+
 ## Update (2026-10-02, later): tested in Safari's engine
 
 Ran the full browser suite in **WebKit 26.6** (Safari's engine, via Playwright): first run 46/51. Fixed what it found, then **51/51 in WebKit and 51/51 in Chrome**; 110/110 unit tests.

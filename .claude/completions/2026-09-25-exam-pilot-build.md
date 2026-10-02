@@ -92,3 +92,9 @@ Built Exam Pilot end to end from `Exam_Pilot_PRD.docx` + `Exam_Pilot_Mega_Prompt
 - Store: `updateTask`, `setDayOff`; cross-tab live sync in `src/store/storage.ts` (BroadcastChannel + localStorage ping, quiet re-saves avoid ping-pong).
 - Security: `scripts/add-csp.mjs` (hash CSP for standalone), CSP + headers in `next.config.ts`, strict `parseBackup`, `src/lib/ai/guard.ts` for server routes, pdf.js text-only options + 300-page cap, legacy pdf.js + `src/lib/polyfills.ts` for Safari 16.4+.
 - Tests: 110 unit, 51 e2e (new: agenda.e2e.ts, security.e2e.ts, OCR photo and old-browser PDF tests).
+
+## 2026-10-02 — Rename to Student OS; data durability
+- Renamed visible app name to Student OS (storage keys keep exam-pilot prefix).
+- storage.ts: strict-durability IndexedDB store (same keyval-store DB), immediate write after quiet periods, rescue copy (localStorage) on one-off changes and on hide/pagehide/freeze/beforeunload, newest-copy-wins on load, persistent storage request; Settings data-safety panel; dashboard backup reminder (settings.lastBackupAt / backupSnoozedUntil).
+- single/router.tsx: snapshot re-reads the hash (fixed hang when the hash changed during start-up).
+- e2e/durability.e2e.ts with real profiles (close tab, quit, SIGKILL, rescue); `npm run test:safari`.

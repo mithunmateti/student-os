@@ -58,6 +58,10 @@ export interface Settings {
   planner: PlannerPreferences;
   defaultRule: MarkingRule;
   onboarded: boolean;
+  /** When the student last downloaded a full backup (ISO timestamp). */
+  lastBackupAt?: ISODateTime;
+  /** The backup reminder stays hidden until this date. */
+  backupSnoozedUntil?: ISODate;
 }
 
 /* ------------------------------------------------------------------ */

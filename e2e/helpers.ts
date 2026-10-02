@@ -51,3 +51,9 @@ export const sideOverflow = (page: Page) => page.evaluate(() => document.documen
 export function saveJson(name: string, data: unknown) {
   writeFileSync(OUT + name, JSON.stringify(data, null, 2));
 }
+
+/** A real on-disk browser profile, like a student's own browser (data survives a restart). */
+export async function launchProfile(dir: string, device: object = LAPTOP): Promise<BrowserContext> {
+  if (ENGINE === "webkit") return webkit.launchPersistentContext(dir, { headless: true, ...device });
+  return chromium.launchPersistentContext(dir, { executablePath: CHROME, headless: true, ...device });
+}

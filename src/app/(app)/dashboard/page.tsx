@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { ChartCard, Bars, HBarList, LineTrend, subjectColorOf } from "@/components/charts";
 import { ComingUp, DayDetails, MonthCalendar, WeekStrip } from "@/components/agenda";
+import { BackupReminder } from "@/components/backup-reminder";
 import { Countdown, Delta, ObservationCard, ReadinessPanel } from "@/components/domain";
 import { ThemeButton } from "@/components/shell";
 import { Badge, Callout, Card, CardHeader, cn, EmptyState, LinkButton, ProgressRing } from "@/components/ui";
@@ -74,6 +75,7 @@ export default function DashboardPage() {
       </div>
 
       <SummaryTiles target={target} />
+      <BackupReminder />
 
       {(overdue > 0 || dueMistakes > 0) && (
         <div className="grid gap-2 sm:grid-cols-2">

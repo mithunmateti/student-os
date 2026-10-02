@@ -9,6 +9,7 @@ import {
 import { today } from "@/domain/util";
 import { useHydrated } from "@/lib/hooks";
 import { useStore } from "@/store/store";
+import { requestPersistentStorage } from "@/store/storage";
 import { SaveIndicator } from "./domain";
 import { Button, cn, Skeleton } from "./ui";
 
@@ -224,6 +225,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (hydrated) ensure();
   }, [hydrated, ensure]);
+  // Ask the browser not to clear this app's data on its own (granted silently in most browsers).
+  useEffect(() => {
+    if (hydrated && onboarded) void requestPersistentStorage();
+  }, [hydrated, onboarded]);
   useEffect(() => {
     if (hydrated && !onboarded) router.replace("/");
   }, [hydrated, onboarded, router]);

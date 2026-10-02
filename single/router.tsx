@@ -18,18 +18,26 @@ function read(): Location {
   return { path: q >= 0 ? raw.slice(0, q) : raw, search: q >= 0 ? raw.slice(q) : "" };
 }
 
+// Always reflect the address bar as it is now (re-read when the hash differs), so a change made
+// while the app is still starting up (before anything listens for "hashchange") isn't missed.
+let cachedHash = window.location.hash;
 let cached = read();
-function subscribe(cb: () => void) {
-  const f = () => {
+function snapshot(): Location {
+  if (window.location.hash !== cachedHash) {
+    cachedHash = window.location.hash;
     cached = read();
-    cb();
-  };
-  window.addEventListener("hashchange", f);
-  return () => window.removeEventListener("hashchange", f);
+  }
+  return cached;
+}
+function subscribe(cb: () => void) {
+  window.addEventListener("hashchange", cb);
+  // Catch up on a change that happened before this subscription existed.
+  if (window.location.hash !== cachedHash) queueMicrotask(cb);
+  return () => window.removeEventListener("hashchange", cb);
 }
 
 export function useLocation(): Location {
-  return useSyncExternalStore(subscribe, () => cached, () => cached);
+  return useSyncExternalStore(subscribe, snapshot, snapshot);
 }
 
 export function navigate(href: string, replace = false) {

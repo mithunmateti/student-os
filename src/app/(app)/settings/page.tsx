@@ -7,8 +7,10 @@ import { RuleEditor } from "@/components/editors";
 import { Badge, Button, Callout, Card, CardHeader, ConfirmDialog, Field, Input, Segmented, Select, Switch, toast } from "@/components/ui";
 import { DEFAULT_ERROR_CATEGORIES, ERROR_GROUP_LABEL } from "@/domain/catalog";
 import type { ErrorCategory, ErrorGroup, Settings } from "@/domain/types";
-import { uid } from "@/domain/util";
-import { backupJson, download, notebookCsv, parseBackup } from "@/lib/export";
+import { daysBetween, today, uid } from "@/domain/util";
+import { downloadBackup } from "@/lib/backup";
+import { download, notebookCsv, parseBackup } from "@/lib/export";
+import { isStoragePersistent, requestPersistentStorage } from "@/store/storage";
 import { getUserApiKey, setUserApiKey, testApiKey, serverHasAi } from "@/lib/ai/client";
 import { getData, useStore } from "@/store/store";
 
@@ -126,9 +128,10 @@ export default function SettingsPage() {
       <Card>
         <CardHeader icon={Database} title="Your data" subtitle={`${counts.exams} exams · ${counts.analyses} analyses · ${counts.notebook} notebook entries · ${counts.tasks} tasks${storage ? ` · ${storage}` : ""}`} />
         <div className="space-y-4 px-5 pb-5">
-          <Callout icon={Database}>Student OS is local-first: nothing leaves this browser unless you export it. Clearing browser data deletes it — export a backup regularly.</Callout>
+          <Callout icon={Database}>Student OS is local-first: nothing leaves this browser unless you export it. Your data is saved on this device as you go and stays there when you close the app or turn the device off. Only clearing this browser&apos;s data (or uninstalling the browser) deletes it, so keep a backup.</Callout>
+          <DataSafety lastBackupAt={settings.lastBackupAt} />
           <div className="flex flex-wrap gap-2">
-            <Button icon={Download} variant="primary" onClick={() => { download(`student-os-backup-${new Date().toISOString().slice(0, 10)}.json`, backupJson(getData()), "application/json"); toast("Backup downloaded"); }}>Export full backup</Button>
+            <Button icon={Download} variant="primary" onClick={() => { downloadBackup(); toast("Backup downloaded. Keep it somewhere safe, like iCloud Drive or Google Drive."); }}>Export full backup</Button>
             <Button icon={Upload} onClick={() => fileRef.current?.click()}>Restore from backup</Button>
             <Button icon={Download} onClick={() => { const d = getData(); download("error-notebook.csv", notebookCsv(d.notebook, d.analyses, d.settings.errorCategories), "text/csv"); }}>Export Error Notebook (CSV)</Button>
             <input ref={fileRef} type="file" accept="application/json,.json" className="sr-only" aria-hidden tabIndex={-1} onChange={async (e) => {
@@ -234,5 +237,34 @@ function ApiKeyField({ serverEnabled }: { serverEnabled: boolean }) {
       </form>
       {status !== "idle" && status !== "testing" && <p className={`mt-2 text-xs ${status === "ok" ? "text-good" : "text-bad"}`} role="status">{message}</p>}
     </div>
+  );
+}
+
+/** Is the data protected from the browser's automatic clean-up, and when was the last backup? */
+function DataSafety({ lastBackupAt }: { lastBackupAt?: string }) {
+  const [persistent, setPersistent] = useState<boolean | null>(null);
+  useEffect(() => { void isStoragePersistent().then(setPersistent); }, []);
+  const ask = async () => {
+    const ok = await requestPersistentStorage();
+    setPersistent(ok);
+    toast(ok ? "Done: the browser won't clear Student OS data on its own." : "The browser didn't allow it. Keep regular backups instead.", ok ? "good" : "warn");
+  };
+  const backupDays = lastBackupAt ? daysBetween(lastBackupAt.slice(0, 10), today()) : null;
+  return (
+    <ul className="space-y-2 text-sm">
+      <li className="flex flex-wrap items-center gap-2">
+        {persistent ? <Badge tone="good">Protected</Badge> : <Badge tone="warn">Not protected</Badge>}
+        <span className="flex-1 text-fg-2">
+          {persistent === null ? "This browser doesn't say whether it may clear saved data on its own."
+            : persistent ? "The browser won't clear your data on its own, even when the disk gets full."
+            : "The browser may clear saved data on its own if the disk gets very full."}
+        </span>
+        {!persistent && persistent !== null && <Button size="xs" variant="soft" onClick={ask}>Ask to protect it</Button>}
+      </li>
+      <li className="flex flex-wrap items-center gap-2">
+        {backupDays !== null && backupDays <= 14 ? <Badge tone="good">Backed up</Badge> : <Badge tone="warn">No recent backup</Badge>}
+        <span className="flex-1 text-fg-2">{backupDays === null ? "You haven't downloaded a backup yet." : `Last backup ${backupDays === 0 ? "today" : backupDays === 1 ? "yesterday" : `${backupDays} days ago`}.`}</span>
+      </li>
+    </ul>
   );
 }

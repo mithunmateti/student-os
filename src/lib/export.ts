@@ -151,6 +151,7 @@ export function parseBackup(text: string): AppData {
   const planner = st.planner;
   if (!optional(st.theme, (t) => ["system", "light", "dark"].includes(t as string))) throw invalid("the theme setting is damaged");
   if (!optional(st.studentName, isStr)) throw invalid("the name setting is damaged");
+  if (!optional(st.lastBackupAt, isDate) || !optional(st.backupSnoozedUntil, isDate)) throw invalid("the backup dates are damaged");
   if (!optional(planner, (p) => isObj(p) && Array.isArray(p.minutesByWeekday) && p.minutesByWeekday.length === 7 && p.minutesByWeekday.every(isNum)
     && Array.isArray(p.blockedDates) && p.blockedDates.every(isDate))) throw invalid("the study-time settings are damaged");
   if (!optional(st.errorCategories, (c) => Array.isArray(c) && c.every((x) => isObj(x) && isStr(x.id) && isStr(x.label)))) throw invalid("the error categories are damaged");
