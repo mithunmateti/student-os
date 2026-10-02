@@ -1,0 +1,327 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ------------------------------------------------------------------ */
+/* Design tokens — neutral base, one indigo accent, reserved status    */
+/* colors. Chart series follow the validated categorical palette.      */
+/* ------------------------------------------------------------------ */
+/* Student OS look: iOS-style greys, white rounded cards, one blue accent. */
+:root {
+  color-scheme: light;
+  --bg: #f2f2f7;
+  --surface: #ffffff;
+  --surface-2: #f2f2f7;
+  --surface-3: #ededf2;
+  --fg: #1c1c1e;
+  --fg-2: #48484a;
+  --fg-3: #636366;
+  --faint: #8e8e93;
+  --border: #e5e5ea;
+  --border-strong: #c7c7cc;
+  --ring: #0a66e0;
+
+  --accent: #0a66e0;
+  --accent-fg: #ffffff;
+  --accent-soft: #e3eeff;
+  --accent-text: #0b57c2;
+
+  --good: #1f7a44;
+  --good-soft: #e2f5e7;
+  --bad: #c41c35;
+  --bad-soft: #ffe5e8;
+  /* Count badges (white text) keep a strong red in both themes. */
+  --badge: #d0213b;
+  --warn: #9a4300;
+  --warn-soft: #ffeedc;
+  --muted-status: #55555a;
+  --muted-soft: #ededf2;
+
+  --tab-bg: rgb(249 249 249 / 0.92);
+  --tab-line: rgb(60 60 67 / 0.29);
+  --toast-bg: #1c1c1e;
+
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-5: #e87ba4;
+  --chart-6: #008300;
+  --chart-grid: #e5e5ea;
+  --chart-axis: #8e8e93;
+  /* Sequential blue ramp: low → high accuracy */
+  --heat-0: #e6effb; --heat-1: #b7d3f6; --heat-2: #86b6ef; --heat-3: #2f74cf; --heat-4: #256abf; --heat-5: #184f95;
+  --heat-fg-low: #0d366b; --heat-fg-high: #ffffff;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-md: 0 6px 20px -6px rgb(0 0 0 / 0.14);
+  --shadow-lg: 0 20px 48px -12px rgb(0 0 0 / 0.28);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e0e11;
+  --surface: #1c1c21;
+  --surface-2: #2a2a30;
+  --surface-3: #2a2a30;
+  --fg: #f5f5f7;
+  --fg-2: #d1d1d6;
+  --fg-3: #a1a1a8;
+  --faint: #8e8e93;
+  --border: #2c2c33;
+  --border-strong: #48484f;
+  --ring: #5b9dff;
+
+  --accent: #0a66e0;
+  --accent-fg: #ffffff;
+  --accent-soft: #16294a;
+  --accent-text: #8cb8ff;
+
+  --good: #7fd99a;
+  --good-soft: #12301c;
+  --bad: #ff8a9a;
+  --bad-soft: #3a1218;
+  --badge: #d0213b;
+  --warn: #ffb36b;
+  --warn-soft: #3a2410;
+  --muted-status: #a1a1a8;
+  --muted-soft: #2a2a30;
+
+  --tab-bg: rgb(22 22 26 / 0.92);
+  --tab-line: rgb(255 255 255 / 0.12);
+  --toast-bg: #3a3a40;
+
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
+  --chart-6: #008300;
+  --chart-grid: #2c2c33;
+  --chart-axis: #8e8e93;
+  --heat-0: #1b2230; --heat-1: #1c3252; --heat-2: #1c4a80; --heat-3: #4a90e2; --heat-4: #6aa6ec; --heat-5: #86b6ef;
+  --heat-fg-low: #c9d9f2; --heat-fg-high: #0b1628;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 6px 20px -6px rgb(0 0 0 / 0.6);
+  --shadow-lg: 0 24px 48px -12px rgb(0 0 0 / 0.7);
+}
+
+/* Height of the phone tab bar (0 on desktop, where the sidebar is used). */
+:root { --tabbar-h: 0px; }
+@media (max-width: 1023.98px) {
+  :root { --tabbar-h: calc(50px + max(env(safe-area-inset-bottom, 0px), 10px)); }
+}
+
+/* Subject colours: an element with .subj-physics etc. gets --tint, --ink and --dot. */
+.subj-physics   { --tint: #e3eeff; --ink: #0b4fa8; --dot: #2f7bf5; }
+.subj-chemistry { --tint: #ffeedc; --ink: #9a4300; --dot: #f28a1e; }
+.subj-maths     { --tint: #efeaff; --ink: #5435c2; --dot: #7b5cf0; }
+.subj-biology   { --tint: #e2f5e7; --ink: #1c6e35; --dot: #34b35a; }
+.subj-other     { --tint: #e9ebef; --ink: #3a3f4a; --dot: #8a90a0; }
+[data-theme="dark"] .subj-physics   { --tint: #16294a; --ink: #8cb8ff; }
+[data-theme="dark"] .subj-chemistry { --tint: #3a2410; --ink: #ffb36b; }
+[data-theme="dark"] .subj-maths     { --tint: #2a2150; --ink: #b9a6ff; }
+[data-theme="dark"] .subj-biology   { --tint: #12301c; --ink: #7fd99a; }
+[data-theme="dark"] .subj-other     { --tint: #2a2c31; --ink: #c4c8d0; }
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-muted-status: var(--muted-status);
+  --color-muted-soft: var(--muted-soft);
+  --font-sans: ui-rounded, "SF Pro Rounded", "Nunito", -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+  /* Rounded type reads best heavy: every weight steps up a notch. */
+  --font-weight-normal: 600;
+  --font-weight-medium: 700;
+  --font-weight-semibold: 800;
+  --font-weight-bold: 900;
+  --font-weight-extrabold: 900;
+  --font-weight-black: 900;
+  --color-faint: var(--faint);
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--accent) 25%, transparent);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  label[for],
+  summary {
+    cursor: pointer;
+  }
+  input[type="number"]::-webkit-inner-spin-button {
+    opacity: 0.4;
+  }
+  dialog::backdrop {
+    background: rgb(0 0 0 / 0.36);
+  }
+}
+
+@layer components {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .card {
+    background: var(--surface);
+    border-radius: 22px;
+  }
+  .field {
+    width: 100%;
+    min-height: 44px;
+    /* White on the grey page; grey inside white cards and sheets (below). */
+    background: var(--surface);
+    border: 1.5px solid transparent;
+    border-radius: 14px;
+    padding: 0.55rem 0.85rem;
+    font-size: 15px;
+    line-height: 1.35rem;
+    font-weight: 700;
+    color: var(--fg);
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+  .field:focus {
+    outline: none;
+    background: var(--surface);
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 20%, transparent);
+  }
+  .field::placeholder {
+    color: var(--faint);
+  }
+  .field[aria-invalid="true"] {
+    border-color: var(--bad);
+  }
+  .card .field, dialog .field, .bg-surface .field {
+    background: var(--surface-2);
+  }
+  .card .field:focus, dialog .field:focus, .bg-surface .field:focus {
+    background: var(--surface);
+  }
+  .section-title {
+    font-size: 20px;
+    line-height: 26px;
+    font-weight: 900;
+    color: var(--fg);
+    padding-left: 4px;
+  }
+  .label {
+    display: block;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--fg-3);
+    margin-bottom: 0.35rem;
+    padding-left: 2px;
+  }
+  .hint {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--fg-3);
+    margin-top: 0.3rem;
+    padding-left: 2px;
+  }
+  .eyebrow {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--accent-text);
+  }
+  .subj-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 9px;
+    border-radius: 8px;
+    background: var(--tint);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 18px;
+    white-space: nowrap;
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface-3) 0%, var(--surface-2) 50%, var(--surface-3) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.3s ease-in-out infinite;
+    border-radius: 8px;
+  }
+  .scroll-thin {
+    scrollbar-width: thin;
+  }
+  .grid-bg {
+    background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(40px); opacity: 0.6; }
+  to { transform: none; opacity: 1; }
+}
+.animate-sheet {
+  animation: sheet-up 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-in {
+  animation: fade-in 0.22s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+  .card { box-shadow: none; break-inside: avoid; }
+  .print-break { break-before: page; }
+}
