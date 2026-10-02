@@ -19,8 +19,9 @@ export async function launch(): Promise<Browser> {
 export interface Session { ctx: BrowserContext; page: Page; errors: string[] }
 
 /** A fresh browser profile (empty storage) with page + console errors collected. */
-export async function open(browser: Browser, device: object = PHONE, colorScheme: "light" | "dark" = "light"): Promise<Session> {
-  const ctx = await browser.newContext({ ...device, colorScheme, acceptDownloads: true });
+/** `bypassCSP` is only for test tooling that injects scripts (axe); the app itself always runs under its policy. */
+export async function open(browser: Browser, device: object = PHONE, colorScheme: "light" | "dark" = "light", opts: { bypassCSP?: boolean } = {}): Promise<Session> {
+  const ctx = await browser.newContext({ ...device, colorScheme, acceptDownloads: true, bypassCSP: !!opts.bypassCSP });
   const page = await ctx.newPage();
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));

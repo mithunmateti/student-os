@@ -47,6 +47,9 @@ export default function NewExamPage() {
   useEffect(() => {
     const p = getSearchParams();
     setFirst(p.get("first") === "1");
+    // "Add an exam on this day" from the calendar.
+    const day = p.get("date");
+    if (day && /^\d{4}-\d{2}-\d{2}$/.test(day) && day >= today()) setDate(day);
     const parent = p.get("parent");
     if (parent) {
       setParentId(parent);

@@ -12,6 +12,8 @@ import Landing from "@/app/page";
 import NotFoundPage from "@/app/not-found";
 import AppError from "@/app/(app)/error";
 import Dashboard from "@/app/(app)/dashboard/page";
+import Todo from "@/app/(app)/todo/page";
+import CalendarPage from "@/app/(app)/calendar/page";
 import Exams from "@/app/(app)/exams/page";
 import NewExam from "@/app/(app)/exams/new/page";
 import ExamHub from "@/app/(app)/exam/[id]/page";
@@ -36,6 +38,8 @@ type Layout = "none" | "app" | "analyzer";
 const ROUTES: { def: ReturnType<typeof compile>; page: ComponentType; layout: Layout; title: string }[] = [
   ["/", Landing, "none", "Exam Pilot"],
   ["/dashboard", Dashboard, "app", "Dashboard"],
+  ["/todo", Todo, "app", "To-do"],
+  ["/calendar", CalendarPage, "app", "Calendar"],
   ["/exams", Exams, "app", "My Exams"],
   ["/exams/new", NewExam, "app", "Create exam"],
   ["/exam/:id", ExamHub, "app", "Exam"],

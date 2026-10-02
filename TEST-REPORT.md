@@ -1,5 +1,20 @@
 # Exam Pilot — test report
 
+## Update (2026-10-02): calendar, to-do list, security hardening
+
+**Final run:** type check clean · **110/110 unit tests** · **51/51 browser tests** · Next.js and single-file builds succeed · `npm audit`: 0 vulnerabilities.
+
+New features tested: one task list shared by Today, To-do and Calendar (add/tick in one place shows everywhere), drag a task to another day, arrow-key navigation in the calendar, take a day off (planned work moves, your own tasks stay, Undo works), live sync between two open windows, no sideways scrolling on a phone.
+
+Bugs found and fixed in this round:
+- Calendar arrow keys moved from the *selected* day instead of the *focused* day.
+- PDF import would have failed on Safari older than 18.2 (pdf.js modern build needs `Promise.try`). Now uses the legacy build plus a `Promise.withResolvers` fallback; verified with those features removed from the browser.
+- Restoring a crafted backup could overwrite the app's own functions or crash it; backups are now validated field by field.
+
+Security hardening (each has a browser test): strict hash-based Content Security Policy in `index.html` (injected scripts, inline handlers, string-eval and requests to unlisted sites are blocked); security headers on the hosted version; HTML typed into tasks is shown as text, never run; PDF reading is text-only with size/page caps; OCR loads only version-pinned files; server AI routes are same-site only, size-capped and rate-limited.
+
+Not possible to promise: "unhackable". The attack surface is small (no server, no accounts, data stays in the browser), but anyone with access to the computer's browser profile can read its data and saved AI key. Real Safari wasn't run (no WebKit engine installed); compatibility was checked by feature analysis and simulation.
+
 ## Update (2026-10-02): AI switched from Grok to Google Gemini
 
 - Model `gemini-3.5-flash-lite` via the Gemini API's `generateContent` (JSON schema output), falling back to `gemini-2.5-flash-lite` if a key can't use it. Key goes in the `x-goog-api-key` header, never the URL.

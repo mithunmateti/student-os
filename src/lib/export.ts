@@ -95,9 +95,72 @@ export function backupJson(data: AppData): string {
   return JSON.stringify({ app: "exam-pilot", exportedAt: new Date().toISOString(), data }, null, 2);
 }
 
+/** Backups bigger than this aren't real (a heavy user's data is a few MB). */
+export const MAX_BACKUP_MB = 50;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const MAX_ITEMS = 200_000;
+
+type Rec = Record<string, unknown>;
+const isObj = (v: unknown): v is Rec => !!v && typeof v === "object" && !Array.isArray(v);
+const isStr = (v: unknown): v is string => typeof v === "string";
+const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+const isDate = (v: unknown) => isStr(v) && ISO_DATE.test(v.slice(0, 10));
+const optional = (v: unknown, ok: (x: unknown) => boolean) => v === undefined || v === null || ok(v);
+
+/** Checks every collection item has the fields the app relies on, with the right types. */
+const RULES: Record<string, (x: Rec) => boolean> = {
+  exams: (x) => isStr(x.name) && isDate(x.date) && Array.isArray(x.subjects) && x.subjects.every(isStr) && Array.isArray(x.sections) && x.sections.every(isObj),
+  topics: (x) => isStr(x.examId) && isStr(x.subject) && isStr(x.chapter) && isStr(x.topic),
+  analyses: (x) => isStr(x.examId) && isStr(x.title) && isDate(x.takenOn) && Array.isArray(x.questions) && x.questions.every((q) => isObj(q) && isStr(q.id))
+    && Array.isArray(x.sections) && isObj(x.responses) && optional(x.changes, Array.isArray),
+  tasks: (x) => isStr(x.examId) && isStr(x.title) && isDate(x.dueDate) && isNum(x.durationMinutes) && ["pending", "done", "skipped"].includes(x.status as string)
+    && ["high", "medium", "low"].includes(x.priority as string) && isStr(x.type),
+  revisions: (x) => isStr(x.examId) && isDate(x.dueAt) && isStr(x.label),
+  notebook: (x) => isStr(x.analysisId) && isStr(x.questionId) && optional(x.nextRetryAt, isDate) && Array.isArray(x.retries),
+  practiceSets: (x) => isStr(x.name) && Array.isArray(x.items),
+  planChanges: (x) => isStr(x.examId) && isStr(x.at) && Array.isArray(x.details) && x.details.every(isStr),
+};
+
+/**
+ * Reads a backup file. Rejects anything that isn't a well-formed Exam Pilot backup, and keeps
+ * only the known fields, so a crafted file can't replace the app's own functions or crash it.
+ */
 export function parseBackup(text: string): AppData {
-  const parsed = JSON.parse(text);
-  const data = parsed?.data ?? parsed;
-  if (!data || !Array.isArray(data.exams) || !Array.isArray(data.analyses) || !data.settings) throw new Error("This file isn't an Exam Pilot backup.");
-  return data as AppData;
+  if (text.length > MAX_BACKUP_MB * 1024 * 1024) throw new Error(`This file is too big to be an Exam Pilot backup (over ${MAX_BACKUP_MB} MB).`);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error("This file isn't an Exam Pilot backup (it isn't a backup file at all).");
+  }
+  const data = isObj(parsed) && isObj(parsed.data) ? parsed.data : parsed;
+  if (!isObj(data) || !Array.isArray(data.exams) || !Array.isArray(data.analyses) || !isObj(data.settings)) throw new Error("This file isn't an Exam Pilot backup.");
+  const invalid = (why: string) => new Error(`This file isn't a valid Exam Pilot backup: ${why}. Nothing was changed.`);
+
+  const out: Rec = {};
+  for (const [key, ok] of Object.entries(RULES)) {
+    const list = data[key] ?? [];
+    if (!Array.isArray(list) || list.length > MAX_ITEMS) throw invalid(`“${key}” is not a list`);
+    list.forEach((item, i) => {
+      if (!isObj(item) || !isStr(item.id) || !ok(item)) throw invalid(`${key} item ${i + 1} is damaged`);
+    });
+    out[key] = list;
+  }
+
+  const st = data.settings;
+  const planner = st.planner;
+  if (!optional(st.theme, (t) => ["system", "light", "dark"].includes(t as string))) throw invalid("the theme setting is damaged");
+  if (!optional(st.studentName, isStr)) throw invalid("the name setting is damaged");
+  if (!optional(planner, (p) => isObj(p) && Array.isArray(p.minutesByWeekday) && p.minutesByWeekday.length === 7 && p.minutesByWeekday.every(isNum)
+    && Array.isArray(p.blockedDates) && p.blockedDates.every(isDate))) throw invalid("the study-time settings are damaged");
+  if (!optional(st.errorCategories, (c) => Array.isArray(c) && c.every((x) => isObj(x) && isStr(x.id) && isStr(x.label)))) throw invalid("the error categories are damaged");
+  if (!optional(data.planMeta, (m) => isObj(m) && Object.values(m).every(isDate))) throw invalid("plan dates are damaged");
+
+  return {
+    ...(out as unknown as Omit<AppData, "version" | "settings" | "planMeta" | "isDemo">),
+    version: isNum(data.version) ? data.version : 1,
+    settings: data.settings as unknown as AppData["settings"],
+    planMeta: (data.planMeta as AppData["planMeta"]) ?? {},
+    isDemo: data.isDemo === true,
+  };
 }

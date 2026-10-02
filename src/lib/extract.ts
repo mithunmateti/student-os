@@ -6,8 +6,11 @@
  */
 import type { FileRef } from "@/domain/types";
 import { configurePdfWorker } from "./pdf-worker";
+import { applyPdfPolyfills } from "./polyfills";
 
 export const MAX_FILE_MB = 25;
+/** A question paper is never this long; a bigger file is probably the wrong one (and slow to read). */
+const MAX_PDF_PAGES = 300;
 const PDF = ["application/pdf"];
 const IMAGE = ["image/png", "image/jpeg", "image/webp", "image/bmp", "image/gif"];
 const TEXT = ["text/plain", "text/markdown", "text/csv", ""];
@@ -49,11 +52,16 @@ export async function extractText(file: File, kind: FileRef["kind"], onProgress?
 
 async function extractPdf(file: File, ref: FileRef, onProgress?: (msg: string, pct?: number) => void): Promise<ExtractResult> {
   onProgress?.("Opening PDF…", 0.05);
-  const pdfjs = await import("pdfjs-dist");
+  // The legacy build carries fallbacks for features older Safari lacks; see polyfills.ts.
+  applyPdfPolyfills();
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   configurePdfWorker(pdfjs);
   let doc;
+  // Only the text is read: no XFA forms, no fonts or WebAssembly decoders to load, nothing fetched.
+  // (The page's security policy also stops a PDF from ever evaluating code.)
+  const task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()), enableXfa: false, disableFontFace: true, useWasm: false, disableAutoFetch: true, isOffscreenCanvasSupported: false });
   try {
-    doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    doc = await task.promise;
   } catch (e) {
     const msg = e instanceof Error && /password/i.test(e.message) ? "This PDF is password-protected." : "This PDF couldn't be read — it may be damaged.";
     throw new ExtractError(msg);
@@ -61,6 +69,10 @@ async function extractPdf(file: File, ref: FileRef, onProgress?: (msg: string, p
   const warnings: string[] = [];
   const pages: string[] = [];
   let emptyPages = 0;
+  if (doc.numPages > MAX_PDF_PAGES) {
+    await task.destroy();
+    throw new ExtractError(`This PDF has ${doc.numPages} pages. The limit is ${MAX_PDF_PAGES}; split it into smaller files.`);
+  }
   for (let p = 1; p <= doc.numPages; p++) {
     onProgress?.(`Reading page ${p} of ${doc.numPages}…`, p / doc.numPages);
     const page = await doc.getPage(p);

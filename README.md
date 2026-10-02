@@ -5,6 +5,7 @@
 Exam Pilot joins two systems into one loop:
 
 - **Exam Pilot (preparation)** turns an exam date, a syllabus, your study time and your real test results into an explainable daily plan. Revision time is protected, and every task says why it's there.
+- **Today, To-do and Calendar** share one set of tasks: tick, add, edit, drag to another day or take a day off anywhere, and every view (and any other open window) updates at once.
 - **Exam Analyzer (post-exam)** imports a question paper and answer key (PDF, photos, pasted text or manual structure). You verify them, confirm any marking scheme, and enter your answers in a fast keyboard grid. It then scores the paper deterministically, helps you diagnose each lost mark, and feeds the findings back into the plan.
 
 ```
@@ -126,9 +127,14 @@ src/
 
 ## Privacy and safety
 
-- Files are validated for type (PDF, image or text) and size (25 MB max), processed on the device, and never logged. Only the file name and size are kept as a source reference.
-- CSV exports neutralise spreadsheet formulas.
-- The AI route treats document text as data, never invents answers, and caps its confidence so every result is reviewed.
+- **Local-first.** No accounts and no server needed: exams, plans and results stay in the browser. Nothing is uploaded unless you turn on Gemini, and then only the extracted document text goes to Google.
+- **Strict Content Security Policy.** `index.html` only runs its own code, pinned by SHA-256 hash (`scripts/add-csp.mjs` adds the policy at build time). Injected scripts, inline event handlers, `eval`, plugins, frames, `<base>` tricks and form posts are all refused by the browser. The page may only connect to Google Gemini, the version-pinned Tesseract OCR files on jsDelivr, and Google Fonts. The hosted version sends an equivalent policy plus `X-Frame-Options: DENY`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, HSTS and `nosniff` (see `next.config.ts`).
+- **Untrusted input is treated as data.** Text from PDFs, photos, backups and AI replies is displayed as text (React escapes it) and never executed. PDFs are read text-only (no XFA forms, fonts, WebAssembly or fetching) and capped at 25 MB / 300 pages.
+- **Backups are checked before restore.** Every record is type-checked, only known fields are kept (a crafted file can't replace the app's functions or pollute built-in objects), and files over 50 MB are refused. A bad file changes nothing.
+- **Server AI routes** (only when the server has `GEMINI_API_KEY`) accept calls from the app's own pages only, cap request size while reading, and rate-limit each visitor (30 requests per 10 minutes).
+- **Your Gemini key** is stored only in this browser (never in backups), sent only to Google in a request header, and removed by "Delete all data". Browsers let every local file opened from disk share storage, so don't open untrusted HTML files in the same browser, and give the key a spending limit at [aistudio.google.com](https://aistudio.google.com/apikey).
+- CSV exports neutralise spreadsheet formulas. `npm audit` reports 0 known vulnerabilities.
+- **Browser support.** Chrome, Edge, Firefox and Safari 16.4+ (macOS and iOS/iPadOS 16.4+). PDF import uses pdf.js's legacy build plus a small fallback (`src/lib/polyfills.ts`) so it works on older Safari, which is tested by removing newer JavaScript features in the browser tests.
 
 ## Tests
 

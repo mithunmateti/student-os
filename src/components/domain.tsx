@@ -15,7 +15,7 @@ import type { Difficulty, Exam, Priority, ResultStatus, StudyTask, TaskType } fr
 import { addDays, daysBetween, formatDate, formatRelativeDay, today } from "@/domain/util";
 import { useStore } from "@/store/store";
 import { useSaveStatus } from "@/store/storage";
-import { Badge, Button, cn, ProgressBar, subjectClass, toast, type Tone } from "./ui";
+import { Badge, Button, cn, Dialog, Field, Input, ProgressBar, Select, subjectClass, toast, type Tone } from "./ui";
 
 /* -------------------------- Difficulty picker -------------------------- */
 
@@ -102,7 +102,10 @@ function taskLink(t: StudyTask): { href: string; label: string } | null {
   return null;
 }
 
-export function TaskCard({ task, compact, showDate, examLabel }: { task: StudyTask; compact?: boolean; showDate?: boolean; examLabel?: string }) {
+/** Drag data type for moving a task onto a calendar day. */
+export const TASK_DRAG_TYPE = "application/x-exam-pilot-task";
+
+export function TaskCard({ task, compact, showDate, examLabel, draggable }: { task: StudyTask; compact?: boolean; showDate?: boolean; examLabel?: string; draggable?: boolean }) {
   const toggle = useStore((s) => s.toggleTask);
   const skip = useStore((s) => s.skipTask);
   const move = useStore((s) => s.moveTask);
@@ -110,6 +113,7 @@ export function TaskCard({ task, compact, showDate, examLabel }: { task: StudyTa
   const difficulty = useStore((s) => (task.topicId ? s.topics.find((t) => t.id === task.topicId)?.difficulty : undefined));
   const setDifficulty = useStore((s) => s.setTopicDifficulty);
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
   const Icon = TASK_ICONS[task.type];
   const done = task.status === "done";
   const skipped = task.status === "skipped";
@@ -117,7 +121,10 @@ export function TaskCard({ task, compact, showDate, examLabel }: { task: StudyTa
   const overdue = task.status === "pending" && task.dueDate < today();
 
   return (
-    <div className={cn("group bg-surface", subjectClass(task.subject), skipped && "opacity-60")}>
+    <>
+    <div className={cn("group bg-surface", subjectClass(task.subject), skipped && "opacity-60", draggable && !done && "cursor-grab active:cursor-grabbing")}
+      draggable={draggable && !done ? true : undefined}
+      onDragStart={draggable && !done ? (e) => { e.dataTransfer.setData(TASK_DRAG_TYPE, task.id); e.dataTransfer.setData("text/plain", task.title); e.dataTransfer.effectAllowed = "move"; } : undefined}>
       <div className="flex items-start gap-1 py-1 pr-1.5 pl-1.5">
         <button
           onClick={() => toggle(task.id)}
@@ -177,11 +184,18 @@ export function TaskCard({ task, compact, showDate, examLabel }: { task: StudyTa
                 )}
                 {task.status !== "done" && (
                   <>
-                    <Button size="xs" variant="soft" onClick={() => move(task.id, addDays(task.dueDate < today() ? today() : task.dueDate, 1))}>Move to tomorrow</Button>
+                    <Button size="xs" variant="soft" onClick={() => { const from = task.dueDate; const to = addDays(from < today() ? today() : from, 1); move(task.id, to); toast(`Moved to ${formatRelativeDay(to).toLowerCase()}`, "good", { label: "Undo", onClick: () => move(task.id, from) }); }}>Move to tomorrow</Button>
+                    <label className="inline-flex h-8 items-center gap-1.5 rounded-full bg-surface-2 pr-1 pl-3 text-[13px] font-semibold text-fg-2">
+                      <CalendarDays className="size-3.5" aria-hidden />Move to
+                      <input type="date" min={today()} value={task.dueDate < today() ? today() : task.dueDate} aria-label={`Move “${task.title}” to a date`}
+                        onChange={(e) => { const from = task.dueDate; const to = e.target.value; if (!to || to === from) return; move(task.id, to); toast(`Moved to ${formatDate(to, { weekday: "short", day: "numeric", month: "short" })}`, "good", { label: "Undo", onClick: () => move(task.id, from) }); }}
+                        className="h-7 rounded-full bg-surface px-2 text-[13px] font-semibold text-fg" />
+                    </label>
                     <Button size="xs" variant="soft" onClick={() => skip(task.id)}>{skipped ? "Unskip" : "Skip"}</Button>
                   </>
                 )}
-                {task.source === "user" && <Button size="xs" variant="ghost" className="text-bad" onClick={() => del(task.id)}>Delete</Button>}
+                <Button size="xs" variant="soft" onClick={() => setEditing(true)}>Edit</Button>
+                {task.source === "user" && <Button size="xs" variant="ghost" className="text-bad" onClick={() => { del(task.id); toast(`Deleted “${task.title}”`, "good", { label: "Undo", onClick: () => useStore.setState((st) => ({ tasks: [...st.tasks, task] })) }); }}>Delete</Button>}
               </div>
             </div>
           )}
@@ -196,6 +210,35 @@ export function TaskCard({ task, compact, showDate, examLabel }: { task: StudyTa
         </button>
       </div>
     </div>
+    {/* Outside the draggable row, so text in the dialog can be selected normally. */}
+    {editing && <EditTaskDialog task={task} onClose={() => setEditing(false)} />}
+    </>
+  );
+}
+
+/** Edit a task's title, date, length and priority. Edited tasks are kept when the plan regenerates. */
+function EditTaskDialog({ task, onClose }: { task: StudyTask; onClose: () => void }) {
+  const update = useStore((s) => s.updateTask);
+  const [f, setF] = useState({ title: task.title, dueDate: task.dueDate, durationMinutes: task.durationMinutes, priority: task.priority });
+  const save = () => {
+    if (!f.title.trim()) return toast("Give the task a title", "bad");
+    update(task.id, { ...f, title: f.title.trim(), durationMinutes: Math.max(5, f.durationMinutes || 5) });
+    toast("Task updated");
+    onClose();
+  };
+  return (
+    <Dialog open onClose={onClose} title="Edit task" description="Changes show up in your to-do list, calendar and plan straight away."
+      footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button><Button variant="primary" onClick={save}>Save</Button></>}>
+      <form className="grid gap-3 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); save(); }}>
+        <Field label="Title" htmlFor={`e-title-${task.id}`} className="sm:col-span-2"><Input id={`e-title-${task.id}`} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} autoFocus /></Field>
+        <Field label="Date" htmlFor={`e-date-${task.id}`}><Input id={`e-date-${task.id}`} type="date" value={f.dueDate} onChange={(e) => e.target.value && setF({ ...f, dueDate: e.target.value })} /></Field>
+        <Field label="Length (min)" htmlFor={`e-dur-${task.id}`}><Input id={`e-dur-${task.id}`} type="number" min={5} step={5} value={f.durationMinutes} onChange={(e) => setF({ ...f, durationMinutes: Number(e.target.value) })} /></Field>
+        <Field label="Priority" htmlFor={`e-prio-${task.id}`} className="sm:col-span-2">
+          <Select id={`e-prio-${task.id}`} value={f.priority} onChange={(e) => setF({ ...f, priority: e.target.value as Priority })}><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></Select>
+        </Field>
+        <button type="submit" hidden />
+      </form>
+    </Dialog>
   );
 }
 

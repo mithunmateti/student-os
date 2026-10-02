@@ -143,15 +143,17 @@ describe("first-time student on a phone", () => {
 
   it("10. the phone tab bar reaches every main area", async () => {
     const { page } = s;
-    for (const [tab, url] of [["Plan", /#\/pilot/], ["Analyze", /#\/analyzer/], ["Mistakes", /#\/notebook/], ["Today", /#\/dashboard/]] as const) {
+    for (const [tab, url] of [["To-do", /#\/todo/], ["Calendar", /#\/calendar/], ["Analyze", /#\/analyzer/], ["Today", /#\/dashboard/]] as const) {
       await page.getByRole("navigation", { name: "Tabs" }).getByRole("link", { name: tab }).click();
       await page.waitForTimeout(400);
       expect(page.url()).toMatch(url);
     }
-    await page.getByRole("button", { name: "More", exact: true }).click();
-    await page.getByRole("link", { name: /Settings/ }).click();
-    await page.waitForTimeout(400);
-    expect(page.url()).toMatch(/#\/settings/);
+    for (const [item, url] of [["Study plan", /#\/pilot/], ["Mistakes", /#\/notebook/], ["Settings", /#\/settings/]] as const) {
+      await page.getByRole("navigation", { name: "Tabs" }).getByRole("button", { name: /^More/ }).click();
+      await page.getByRole("dialog", { name: "More" }).getByRole("link", { name: new RegExp(item) }).click();
+      await page.waitForTimeout(400);
+      expect(page.url()).toMatch(url);
+    }
   });
 
   it("11. no JavaScript errors happened along the way", () => {

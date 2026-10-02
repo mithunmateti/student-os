@@ -86,3 +86,9 @@ Built Exam Pilot end to end from `Exam_Pilot_PRD.docx` + `Exam_Pilot_Mega_Prompt
 - New `src/lib/ai/gemini.ts` (geminiCaller, checkGeminiKey, classify for Google error shapes incl. API_KEY_INVALID and RetryInfo); removed grok.ts. Model gemini-3.5-flash-lite, fallback gemini-2.5-flash-lite on 404.
 - UI copy, key prefix `AIza`, storage key `exam-pilot-gemini-key` (old xai/anthropic keys purged), env `GEMINI_API_KEY`, README, tests updated.
 - 93 unit + 34 e2e pass; Desktop index.html replaced (md5 b2842e6ca8b472a6a452c48d16ee9c61).
+
+## 2026-10-02 — Calendar, To-do, dashboard redesign, security hardening
+- `src/domain/agenda.ts` (+tests): buildAgenda, monthGrid, studyStreak, todoBuckets, lastSevenDays. `src/components/agenda.tsx`: MonthCalendar (drag/drop, arrow keys), WeekStrip, AddTaskInline, DayDetails, ComingUp. Pages `/calendar`, `/todo`; dashboard redesigned (summary tiles, week strip, mini calendar). TopicTodo moved to `src/components/topic-todo.tsx`.
+- Store: `updateTask`, `setDayOff`; cross-tab live sync in `src/store/storage.ts` (BroadcastChannel + localStorage ping, quiet re-saves avoid ping-pong).
+- Security: `scripts/add-csp.mjs` (hash CSP for standalone), CSP + headers in `next.config.ts`, strict `parseBackup`, `src/lib/ai/guard.ts` for server routes, pdf.js text-only options + 300-page cap, legacy pdf.js + `src/lib/polyfills.ts` for Safari 16.4+.
+- Tests: 110 unit, 51 e2e (new: agenda.e2e.ts, security.e2e.ts, OCR photo and old-browser PDF tests).

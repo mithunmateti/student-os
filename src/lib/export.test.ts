@@ -46,6 +46,25 @@ describe("backups", () => {
     expect(() => parseBackup("not json at all")).toThrow();
   });
 
+  it("rejects damaged backups and drops unknown fields, so a crafted file can't break the app", () => {
+    const good = JSON.parse(backupJson(demo));
+    const bad = (mutate: (d: Record<string, unknown>) => void) => {
+      const copy = structuredClone(good);
+      mutate(copy.data);
+      return () => parseBackup(JSON.stringify(copy));
+    };
+    expect(bad((d) => { (d.tasks as Record<string, unknown>[])[0].dueDate = "<script>"; })).toThrow("isn't a valid Exam Pilot backup");
+    expect(bad((d) => { (d.exams as Record<string, unknown>[])[0].id = 7; })).toThrow("isn't a valid Exam Pilot backup");
+    expect(bad((d) => { d.tasks = "lots"; })).toThrow("isn't a valid Exam Pilot backup");
+    expect(bad((d) => { (d.settings as Record<string, unknown>).theme = "hacker"; })).toThrow("isn't a valid Exam Pilot backup");
+    const extra = structuredClone(good);
+    extra.data.toggleTask = "not a function";
+    extra.data.__proto__ = { polluted: true };
+    const back = parseBackup(JSON.stringify(extra)) as unknown as Record<string, unknown>;
+    expect(back.toggleTask).toBeUndefined();
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+  });
+
   it("never includes the Anthropic API key", () => {
     expect(backupJson(demo)).not.toMatch(/AIza[A-Za-z0-9]|gemini-key|xai-key/);
   });

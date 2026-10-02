@@ -184,3 +184,28 @@ describe("multiple goal exams", () => {
     for (const [day, mins] of byDay) expect(mins, `planned ${mins} min on ${day}`).toBeLessThanOrEqual(cap[parseISODate(day).getDay()]);
   });
 });
+
+describe("calendar and to-do actions", () => {
+  it("taking a day off moves planned work elsewhere but keeps the student's own tasks", () => {
+    const id = newExam();
+    const day = addDays(today(), 2);
+    st().addTask({ examId: id, title: "School trip prep", type: "practice", dueDate: day, durationMinutes: 30, priority: "medium", reason: "" });
+    expect(tasksOf(id).filter((t) => t.dueDate === day && t.source !== "user").length).toBeGreaterThan(0);
+    st().setDayOff(day, true);
+    expect(st().settings.planner.blockedDates).toContain(day);
+    expect(tasksOf(id).filter((t) => t.dueDate === day).map((t) => t.title)).toEqual(["School trip prep"]);
+    st().setDayOff(day, false);
+    expect(st().settings.planner.blockedDates).not.toContain(day);
+    expect(tasksOf(id).filter((t) => t.dueDate === day && t.source !== "user").length).toBeGreaterThan(0);
+  });
+
+  it("editing a planned task pins it, so rebuilding the plan keeps the edit", () => {
+    const id = newExam();
+    const t = tasksOf(id).find((x) => x.status === "pending" && x.source === "planner")!;
+    const later = addDays(today(), 3);
+    st().updateTask(t.id, { title: "Kinematics with coaching notes", dueDate: later, durationMinutes: 50 });
+    st().regeneratePlan(id);
+    const after = st().tasks.find((x) => x.id === t.id)!;
+    expect([after.title, after.dueDate, after.durationMinutes, after.pinned]).toEqual(["Kinematics with coaching notes", later, 50, true]);
+  });
+});

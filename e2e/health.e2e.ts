@@ -10,7 +10,7 @@ import type { Browser, Page } from "playwright-core";
 import { APP, go, LAPTOP, launch, loadSampleData, open, PHONE, saveJson, sideOverflow } from "./helpers";
 
 const axeSource = readFileSync(createRequire(import.meta.url).resolve("axe-core/axe.min.js"), "utf8");
-const ROUTES = ["/dashboard", "/exams", "/pilot", "/analyzer", "/analyzer/new", "/notebook", "/question-bank", "/analytics", "/settings", "/exams/new"];
+const ROUTES = ["/dashboard", "/todo", "/calendar", "/exams", "/pilot", "/analyzer", "/analyzer/new", "/notebook", "/question-bank", "/analytics", "/settings", "/exams/new"];
 
 interface RouteResult {
   route: string; device: string; theme: string; overflowPx: number; errors: string[];
@@ -50,7 +50,7 @@ for (const [device, opts] of [["phone", PHONE], ["laptop", LAPTOP]] as const) {
   for (const theme of ["light", "dark"] as const) {
     describe(`every screen · ${device} · ${theme}`, () => {
       it("has no JS errors, no sideways scrolling, and records accessibility issues", async () => {
-        const s = await open(browser, opts, theme);
+        const s = await open(browser, opts, theme, { bypassCSP: true }); // axe is injected as a script
         await loadSampleData(s.page);
         const bad: string[] = [];
         for (const route of ROUTES) {

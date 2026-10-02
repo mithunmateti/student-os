@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import {
-  BookOpen, ChartColumn, ChevronRight, CircleCheckBig, Compass, Ellipsis, Library, Monitor, Moon, NotebookPen, ScanSearch, Settings, Sun, X,
+  BookOpen, CalendarDays, ChartColumn, ChevronRight, CircleCheckBig, Compass, Ellipsis, Library, ListChecks, Monitor, Moon, NotebookPen, ScanSearch, Settings, Sun, X,
 } from "lucide-react";
 import { today } from "@/domain/util";
 import { useHydrated } from "@/lib/hooks";
@@ -14,6 +14,8 @@ import { Button, cn, Skeleton } from "./ui";
 
 const NAV = [
   { href: "/dashboard", label: "Today", icon: CircleCheckBig },
+  { href: "/todo", label: "To-do", icon: ListChecks },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/exams", label: "My Exams", icon: BookOpen, match: ["/exams", "/exam/"] },
   { href: "/pilot", label: "Study plan", icon: Compass },
   { href: "/analyzer", label: "Exam Analyzer", icon: ScanSearch },
@@ -26,11 +28,11 @@ const NAV = [
 /** The phone tab bar: the four things students do most, plus More. */
 const TABS = [
   { href: "/dashboard", label: "Today", icon: CircleCheckBig },
-  { href: "/pilot", label: "Plan", icon: Compass },
+  { href: "/todo", label: "To-do", icon: ListChecks },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/analyzer", label: "Analyze", icon: ScanSearch },
-  { href: "/notebook", label: "Mistakes", icon: NotebookPen },
 ];
-const MORE = ["/exams", "/exam/", "/question-bank", "/analytics", "/settings"];
+const MORE = ["/pilot", "/notebook", "/exams", "/exam/", "/question-bank", "/analytics", "/settings"];
 
 const isActive = (path: string, href: string, match?: string[]) =>
   (match ?? [href]).some((m) => path === m || path.startsWith(m.endsWith("/") ? m : m + "/")) || path === href;
@@ -151,13 +153,13 @@ function TabBar({ onMore, moreOpen }: { onMore: () => void; moreOpen: boolean })
           <Link key={t.href} href={t.href} aria-current={active ? "page" : undefined} className={cn(tab, active ? "text-accent-text" : "text-fg-3")}>
             <t.icon className="size-[25px]" strokeWidth={active ? 2.3 : 1.9} aria-hidden />
             {t.label}
-            {t.href === "/notebook" && due > 0 && <span className="absolute top-1 left-1/2 ml-2 min-w-[18px] rounded-full bg-[var(--badge)] px-1 text-center text-[11px] leading-[18px] text-white tabular" aria-label={`${due} due`}>{due}</span>}
           </Link>
         );
       })}
       <button onClick={onMore} aria-expanded={moreOpen} className={cn(tab, moreActive ? "text-accent-text" : "text-fg-3")}>
         <Ellipsis className="size-[25px]" aria-hidden />
         More
+        {due > 0 && <span className="absolute top-1 left-1/2 ml-2 min-w-[18px] rounded-full bg-[var(--badge)] px-1 text-center text-[11px] leading-[18px] text-white tabular"><span aria-hidden>{due}</span><span className="sr-only">, {due} mistakes due</span></span>}
       </button>
     </nav>
   );
@@ -165,10 +167,13 @@ function TabBar({ onMore, moreOpen }: { onMore: () => void; moreOpen: boolean })
 
 function MoreSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const path = usePathname();
+  const due = useNotebookDue();
   const isDemo = useStore((s) => s.isDemo);
   const router = useRouter();
   if (!open) return null;
   const items = [
+    { href: "/pilot", label: "Study plan", sub: "Your adaptive daily plan and topic priorities", icon: Compass },
+    { href: "/notebook", label: "Mistakes", sub: due ? `${due} due for a retry` : "Your Error Notebook", icon: NotebookPen },
     { href: "/exams", label: "My Exams", sub: "Exams, syllabus and mock tests", icon: BookOpen },
     { href: "/question-bank", label: "Question Bank", sub: "Every question you've analyzed", icon: Library },
     { href: "/analytics", label: "Analytics", sub: "Trends across your tests", icon: ChartColumn },

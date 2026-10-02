@@ -16,7 +16,7 @@ import type {
   QResponse, Question, Settings, StudyTask, SyllabusTopic,
 } from "@/domain/types";
 import { addDays, today, uid } from "@/domain/util";
-import { createIdbStorage, THEME_KEY } from "./storage";
+import { createIdbStorage, listenForOtherTabs, THEME_KEY } from "./storage";
 
 const STORE_KEY = "exam-pilot-data";
 const STAGES: AnalysisStage[] = ["review", "marking", "answers", "results", "errors", "report"];
@@ -54,7 +54,11 @@ export interface Actions {
   skipTask: (id: string) => void;
   moveTask: (id: string, date: string) => void;
   addTask: (task: Omit<StudyTask, "id" | "status" | "source">) => void;
+  /** Edits a task (title, date, length, priority…). Edited tasks are kept when the plan regenerates. */
+  updateTask: (id: string, patch: Partial<Pick<StudyTask, "title" | "dueDate" | "durationMinutes" | "priority" | "subject" | "type">>) => void;
   deleteTask: (id: string) => void;
+  /** Marks a calendar day as a day off (or a study day again) and re-plans every goal exam around it. */
+  setDayOff: (date: string, off: boolean) => void;
 
   /* analyzer */
   createAnalysis: (a: Analysis) => string;
@@ -302,7 +306,14 @@ export const useStore = create<Store>()(
         skipTask: (id) => set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, status: t.status === "skipped" ? "pending" : "skipped" } : t)) })),
         moveTask: (id, date) => set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, dueDate: date, pinned: true } : t)) })),
         addTask: (task) => set((s) => ({ tasks: [...s.tasks, { ...task, id: uid("task"), status: "pending", source: "user", pinned: true }] })),
+        updateTask: (id, patch) => set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, ...patch, pinned: true } : t)) })),
         deleteTask: (id) => set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) })),
+        setDayOff: (date, off) => {
+          const p = get().settings.planner;
+          const blockedDates = off ? [...new Set([...p.blockedDates, date])].sort() : p.blockedDates.filter((d) => d !== date);
+          set((s) => ({ settings: { ...s.settings, planner: { ...s.settings.planner, blockedDates } } }));
+          for (const g of targetExams(get())) regenerateInternal(g.id);
+        },
 
         /* ----------------------------- analyzer ---------------------------- */
         createAnalysis: (a) => {
@@ -502,6 +513,9 @@ export const useStore = create<Store>()(
 );
 
 export const getData = (): AppData => dataOf(useStore.getState());
+
+// Another open tab saved: load its data so both windows always show the same thing.
+if (typeof window !== "undefined") listenForOtherTabs(() => useStore.persist.rehydrate());
 
 if (typeof window !== "undefined" && process.env.NODE_ENV !== "production") {
   (window as unknown as { __examPilot: typeof useStore }).__examPilot = useStore;

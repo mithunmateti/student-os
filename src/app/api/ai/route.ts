@@ -7,6 +7,7 @@
  * - Uploaded document text is never logged.
  */
 import { AiError, describeAiError, geminiCaller } from "@/lib/ai/gemini";
+import { guardAiRequest, readJsonCapped, TooLarge } from "@/lib/ai/guard";
 import { PAPER_MAX_CHARS, structurePaperWithAI } from "@/lib/ai/paper";
 
 export const runtime = "nodejs";
@@ -20,11 +21,16 @@ export async function GET() {
 
 export async function POST(req: Request) {
   if (!serverKey()) return Response.json({ error: "AI extraction is not configured on this server." }, { status: 503 });
+  const refused = guardAiRequest(req);
+  if (refused) return refused;
   let body: { paperText?: unknown; keyText?: unknown; subjects?: unknown };
   try {
-    body = await req.json();
-  } catch {
-    return Response.json({ error: "Invalid request." }, { status: 400 });
+    body = (await readJsonCapped(req, PAPER_MAX_CHARS * 4 + 64_000)) as typeof body;
+    if (!body || typeof body !== "object") throw new Error();
+  } catch (e) {
+    return e instanceof TooLarge
+      ? Response.json({ error: "This paper is too long to structure in one go." }, { status: 413 })
+      : Response.json({ error: "Invalid request." }, { status: 400 });
   }
   const paper = typeof body.paperText === "string" ? body.paperText : "";
   const key = typeof body.keyText === "string" ? body.keyText : "";

@@ -3,18 +3,21 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import {
-  ArrowRight, BookOpen, CalendarDays, CalendarClock, CircleCheck, Compass, Flame, NotebookPen, Plus, ScanSearch, SlidersHorizontal, Sparkles, Target, TriangleAlert,
+  ArrowRight, BookOpen, CalendarDays, CalendarClock, Compass, Flame, NotebookPen, Plus, ScanSearch, Sparkles, TriangleAlert,
 } from "lucide-react";
 import { ChartCard, Bars, HBarList, LineTrend, subjectColorOf } from "@/components/charts";
-import { Countdown, Delta, ObservationCard, ReadinessPanel, TaskCard, TaskList } from "@/components/domain";
+import { ComingUp, DayDetails, MonthCalendar, WeekStrip } from "@/components/agenda";
+import { Countdown, Delta, ObservationCard, ReadinessPanel } from "@/components/domain";
 import { ThemeButton } from "@/components/shell";
-import { Badge, Button, Callout, Card, CardHeader, cn, EmptyState, LinkButton, ProgressBar, ProgressRing, subjectClass, toast } from "@/components/ui";
+import { Badge, Callout, Card, CardHeader, cn, EmptyState, LinkButton, ProgressRing } from "@/components/ui";
 import { explainChange, recommend, scoreAnalysis, shortTitle, topLossSources } from "@/domain/analysis";
 import { TASK_TYPE_META } from "@/domain/catalog";
 import { chapterPerformance } from "@/domain/planner";
 import { describeRule } from "@/domain/scoring";
+import { lastSevenDays, monthOf, studyStreak } from "@/domain/agenda";
 import { allFinalized, upcomingExams } from "@/domain/selectors";
-import { daysBetween, fmtNum, formatDate, formatRelativeDay, pct, relativeDayInline, fmtPct1 } from "@/domain/util";
+import type { Exam } from "@/domain/types";
+import { addDays, daysBetween, fmtNum, formatDate, formatRelativeDay, pct, relativeDayInline, fmtPct1 } from "@/domain/util";
 import { useFamily, useObservations, usePrimaryTarget, useReadiness, useToday } from "@/lib/hooks";
 import { useStore } from "@/store/store";
 
@@ -32,25 +35,27 @@ export default function DashboardPage() {
   const family = useFamily(target?.id);
   const observations = useObservations(target?.id);
   const readiness = useReadiness(target);
-  const next = upcomingExams({ exams }, d)[0];
   const finalized = useMemo(() => allFinalized({ analyses }), [analyses]);
   const latest = finalized[finalized.length - 1];
   const drafts = analyses.filter((a) => !a.finalizedAt);
 
+  // One selected day drives the week strip, the mini calendar and the day's to-do list.
+  const [selected, setSelected] = useState(d);
+  const [stripStart, setStripStart] = useState(d);
+  const [month, setMonth] = useState(monthOf(d));
+  const select = (x: string) => {
+    setSelected(x);
+    if (x < stripStart || x > addDays(stripStart, 6)) setStripStart(x);
+    if (monthOf(x) !== month) setMonth(monthOf(x));
+  };
+
   if (!exams.length) return <NewUser name={settings.studentName} />;
 
-  const today = tasks.filter((t) => (t.dueDate === d || (t.dueDate < d && t.status === "pending" && t.source === "user")) && t.status !== "skipped");
-  const todayOrdered = [...today].sort((a, b) => Number(a.status === "done") - Number(b.status === "done") || ({ high: 0, medium: 1, low: 2 }[a.priority] - { high: 0, medium: 1, low: 2 }[b.priority]));
-  const doneMin = today.filter((t) => t.status === "done").reduce((m, t) => m + t.durationMinutes, 0);
-  const totalMin = today.reduce((m, t) => m + t.durationMinutes, 0);
   const daysLeft = target ? daysBetween(d, target.date) : null;
   const finalWeek = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
   const latestChange = planChanges.find((c) => c.examId === target?.id);
-  const goalCount = exams.filter((e) => !e.parentExamId && !e.archived && e.date >= d).length;
   const dueMistakes = notebook.filter((n) => n.mastery !== "mastered" && n.nextRetryAt && n.nextRetryAt <= d).length;
-
-  const overdue = tasks.filter((t) => t.dueDate < d && t.status === "pending" && t.source !== "user").length;
-  const left = today.filter((t) => t.status !== "done").length;
+  const overdue = tasks.filter((t) => t.dueDate < d && t.status === "pending").length;
 
   return (
     <div className="space-y-5 animate-in">
@@ -68,34 +73,15 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
-        {/* PRIMARY */}
-        <div className="min-w-0 space-y-5">
-          {target && <QuickAdd examId={target.id} subjects={target.subjects} />}
+      <SummaryTiles target={target} />
 
-          {/* Progress ring */}
-          {today.length > 0 && (
-            <div className="card flex items-center gap-4 px-[18px] py-3.5">
-              <ProgressRing value={today.length ? today.filter((t) => t.status === "done").length / today.length : 0} label="Today's progress" />
-              <div className="min-w-0 flex-1">
-                <div className="text-[19px] font-bold">{today.length - left} of {today.length} done</div>
-                <div className="text-sm text-fg-3">{left ? `${left} to go · ${totalMin - doneMin} min of study left` : "All done for today. Nice work."}</div>
-              </div>
-              {next && (
-                <Link href={`/exam/${next.id}`} className="hidden shrink-0 rounded-2xl bg-bad-soft px-3 py-2 text-right sm:block">
-                  <div className="text-[11px] font-bold text-bad">NEXT EXAM</div>
-                  <div className="max-w-40 truncate text-sm font-bold">{next.name}</div>
-                  <div className="text-xs font-semibold text-fg-2"><Countdown date={next.date} /></div>
-                </Link>
-              )}
-            </div>
-          )}
-
-          {overdue > 0 && target && (
-            <Link href={`/pilot/${target.id}`} className="flex min-h-12 items-center gap-2.5 rounded-2xl bg-warn-soft px-4 text-[15px] font-bold text-warn">
+      {(overdue > 0 || dueMistakes > 0) && (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {overdue > 0 && (
+            <Link href="/todo" className="flex min-h-12 items-center gap-2.5 rounded-2xl bg-warn-soft px-4 text-[15px] font-bold text-warn">
               <TriangleAlert className="size-[18px] shrink-0" aria-hidden />
               <span className="flex-1">{overdue} task{overdue === 1 ? "" : "s"} overdue</span>
-              <span className="text-sm">Review →</span>
+              <span className="text-sm">Sort out →</span>
             </Link>
           )}
           {dueMistakes > 0 && (
@@ -105,42 +91,36 @@ export default function DashboardPage() {
               <span className="text-sm text-accent-text">Retry →</span>
             </Link>
           )}
+        </div>
+      )}
+      {finalWeek && target && (
+        <Callout tone="warn" icon={Flame} title={`Final prep mode: ${target.name} is ${daysLeft === 0 ? "today" : `in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`}`}
+          action={<LinkButton href={`/pilot/${target.id}`} size="sm" variant="secondary">Final-week plan</LinkButton>}>
+          Your plan now favours weak areas, high-yield revision, recent mistakes and timed practice. No new low-priority topics.
+        </Callout>
+      )}
+      {drafts.length > 0 && (
+        <Callout tone="accent" icon={ScanSearch} title={`You have ${drafts.length} unfinished analysis${drafts.length === 1 ? "" : "es"}`}
+          action={<LinkButton href={`/analyzer/${drafts[0].id}`} size="sm" variant="secondary" iconRight={ArrowRight}>Resume</LinkButton>}>
+          “{drafts[0].title}” is saved as a draft at the {drafts[0].stage} step.
+        </Callout>
+      )}
 
-          {finalWeek && target && (
-            <Callout tone="warn" icon={Flame} title={`Final prep mode: ${target.name} is ${daysLeft === 0 ? "today" : `in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`}`}
-              action={<LinkButton href={`/pilot/${target.id}`} size="sm" variant="secondary">Final-week plan</LinkButton>}>
-              Your plan now favours weak areas, high-yield revision, recent mistakes and timed practice. No new low-priority topics.
-            </Callout>
-          )}
-          {drafts.length > 0 && (
-            <Callout tone="accent" icon={ScanSearch} title={`You have ${drafts.length} unfinished analysis${drafts.length === 1 ? "" : "es"}`}
-              action={<LinkButton href={`/analyzer/${drafts[0].id}`} size="sm" variant="secondary" iconRight={ArrowRight}>Resume</LinkButton>}>
-              “{drafts[0].title}” is saved as a draft at the {drafts[0].stage} step.
-            </Callout>
-          )}
-
-          <section aria-labelledby="today-h" className="space-y-2">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+        {/* PRIMARY: the week and the selected day's to-do list */}
+        <div className="min-w-0 space-y-5">
+          <section aria-label="Your week" className="space-y-2">
             <div className="flex items-baseline justify-between px-1">
-              <h2 id="today-h" className="text-xl font-black">Today&apos;s plan</h2>
-              {target && <Link href={`/pilot/${target.id}`} className="inline-flex min-h-9 items-center text-sm font-bold text-accent-text">Full plan →</Link>}
+              <h2 className="text-[13px] font-extrabold tracking-wide text-fg-3 uppercase">Your week</h2>
+              <div className="flex items-center gap-3">
+                {selected !== d && <button onClick={() => select(d)} className="inline-flex min-h-9 items-center text-sm font-bold text-accent-text">Back to today</button>}
+                <Link href="/todo" className="inline-flex min-h-9 items-center text-sm font-bold text-accent-text">All to-dos →</Link>
+              </div>
             </div>
-            {goalCount > 1 && <p className="px-1 text-[13px] text-fg-3">Across {goalCount} goal exams · study time split by priority and how soon each exam is</p>}
-            {today.length ? (
-              <>
-                <TaskList>
-                  {todayOrdered.slice(0, 8).map((t) => <TaskCard key={t.id} task={t} examLabel={goalCount > 1 ? exams.find((e) => e.id === t.examId)?.name : undefined} />)}
-                </TaskList>
-                {todayOrdered.length > 8 && <Link href={target ? `/pilot/${target.id}` : "/pilot"} className="inline-block px-1 text-sm font-bold text-accent-text">+{todayOrdered.length - 8} more today</Link>}
-              </>
-            ) : (
-              <Card>
-                <EmptyState icon={CalendarDays} title="Nothing scheduled for today" className="py-8"
-                  action={target ? <LinkButton href={`/pilot/${target.id}`} variant="secondary">Open plan</LinkButton> : <LinkButton href="/exams/new" variant="primary" icon={Plus}>Create a goal exam</LinkButton>}>
-                  {target ? "Enjoy the break, or add a task above." : "Exam Pilot plans around a goal exam with a syllabus."}
-                </EmptyState>
-              </Card>
-            )}
+            <WeekStrip start={stripStart} onStart={setStripStart} selected={selected} onSelect={select} />
           </section>
+
+          <DayDetails date={selected} heading={selected === d ? "Today's plan" : undefined} showLink />
 
           {latest ? <LatestAnalysis id={latest.id} /> : (
             <Card>
@@ -155,6 +135,16 @@ export default function DashboardPage() {
 
         {/* SECONDARY */}
         <div className="min-w-0 space-y-5">
+          <div className="card p-3">
+            <MonthCalendar month={month} onMonth={setMonth} selected={selected} onSelect={select} compact />
+            <Link href={`/calendar?date=${selected}`} className="mt-1 flex min-h-10 items-center justify-center gap-1.5 rounded-2xl text-sm font-bold text-accent-text hover:bg-surface-2">
+              <CalendarDays className="size-4" aria-hidden />Open full calendar
+            </Link>
+          </div>
+          <Card>
+            <CardHeader icon={CalendarClock} title="Coming up" subtitle="Exams, mock tests and days off" />
+            <ComingUp />
+          </Card>
           {target && readiness && (
             <Card id="readiness" className="p-5">
               <div className="mb-3 flex items-center justify-between">
@@ -193,6 +183,87 @@ export default function DashboardPage() {
 
       <Trends />
       <RecentExams />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+
+/** Four glanceable tiles: today's progress, study streak, next exam, this week's study time. */
+function SummaryTiles({ target }: { target?: Exam }) {
+  const d = useToday();
+  const tasks = useStore((s) => s.tasks);
+  const exams = useStore((s) => s.exams);
+  const today = tasks.filter((t) => t.dueDate === d && t.status !== "skipped");
+  const done = today.filter((t) => t.status === "done");
+  const minsLeft = today.filter((t) => t.status !== "done").reduce((m, t) => m + t.durationMinutes, 0);
+  const streak = useMemo(() => studyStreak(tasks, d), [tasks, d]);
+  const studiedToday = done.length > 0;
+  const week = useMemo(() => lastSevenDays(tasks, d), [tasks, d]);
+  const weekDone = week.reduce((m, x) => m + x.done, 0);
+  const peak = Math.max(60, ...week.map((x) => Math.max(x.done, x.planned)));
+  const next = upcomingExams({ exams }, d).find((e) => !e.parentExamId) ?? upcomingExams({ exams }, d)[0] ?? target;
+  const nextDays = next ? daysBetween(d, next.date) : null;
+  const tile = "card flex min-h-[132px] flex-col p-4";
+  return (
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className={tile}>
+        <span className="text-[13px] font-extrabold text-fg-3">Today</span>
+        <div className="mt-auto flex items-center gap-3">
+          <ProgressRing value={today.length ? done.length / today.length : 0} size={52} stroke={6} label="Today's progress" />
+          <div className="min-w-0">
+            <div className="text-[17px] leading-tight font-black">{done.length} of {today.length} done</div>
+            <div className="text-xs font-semibold text-fg-3">{today.length ? (minsLeft ? `${minsLeft} min left` : "All finished") : "Nothing planned"}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className={tile}>
+        <span className="text-[13px] font-extrabold text-fg-3">Study streak</span>
+        <div className="mt-auto flex items-center gap-3">
+          <span className={cn("grid size-[52px] shrink-0 place-items-center rounded-full", streak ? "bg-warn-soft text-warn" : "bg-surface-2 text-fg-3")}>
+            <Flame className="size-6" aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <div className="text-[17px] leading-tight font-black tabular">{streak} day{streak === 1 ? "" : "s"}</div>
+            <div className="text-xs font-semibold text-fg-3">{studiedToday ? "You studied today" : streak ? "Tick a task to keep it" : "Tick a task to start"}</div>
+          </div>
+        </div>
+      </div>
+
+      {next && nextDays !== null ? (
+        <Link href={`/exam/${next.id}`} className={cn(tile, "bg-bad-soft transition hover:brightness-[0.98]")}>
+          <span className="text-[13px] font-extrabold text-bad">Next exam</span>
+          <div className="mt-auto">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[34px] leading-none font-black text-bad tabular">{nextDays}</span>
+              <span className="text-[15px] font-bold text-bad">{nextDays === 1 ? "day" : "days"}</span>
+            </div>
+            <div className="mt-1 truncate text-[14px] font-bold text-fg">{next.name}</div>
+            <div className="text-xs font-semibold text-fg-2">{formatDate(next.date, { weekday: "short", day: "numeric", month: "short" })}</div>
+          </div>
+        </Link>
+      ) : (
+        <Link href="/exams/new" className={tile}>
+          <span className="text-[13px] font-extrabold text-fg-3">Next exam</span>
+          <span className="mt-auto text-[15px] font-bold text-accent-text">Add an exam date →</span>
+        </Link>
+      )}
+
+      <div className={tile}>
+        <span className="text-[13px] font-extrabold text-fg-3">Last 7 days</span>
+        <div className="mt-auto">
+          <div className="flex h-10 items-end gap-1" role="img" aria-label={`Studied ${weekDone} minutes in the last 7 days: ${week.map((x) => `${formatDate(x.date, { weekday: "short" })} ${x.done} min`).join(", ")}`}>
+            {week.map((x) => (
+              <span key={x.date} className="relative flex-1 overflow-hidden rounded-[4px] bg-surface-3" style={{ height: `${Math.max(12, (Math.max(x.planned, x.done) / peak) * 100)}%` }}>
+                <span className={cn("absolute inset-x-0 bottom-0 rounded-[4px]", x.date === d ? "bg-accent" : "bg-[var(--chart-1)]/70")} style={{ height: `${x.planned ? (x.done / Math.max(x.planned, x.done)) * 100 : 0}%` }} />
+              </span>
+            ))}
+          </div>
+          <div className="mt-1.5 text-[17px] leading-tight font-black tabular">{weekDone >= 60 ? `${Math.floor(weekDone / 60)}h ${weekDone % 60}m` : `${weekDone} min`}</div>
+          <div className="text-xs font-semibold text-fg-3">studied</div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -439,60 +510,5 @@ function RecentExams() {
         </table>
       </div>
     </Card>
-  );
-}
-
-
-/* ------------------------------------------------------------------ */
-
-/** Student OS quick add: type a task, pick a subject, press +. It lands in today's plan. */
-function QuickAdd({ examId, subjects }: { examId: string; subjects: string[] }) {
-  const addTask = useStore((s) => s.addTask);
-  const d = useToday();
-  const [title, setTitle] = useState("");
-  const [subject, setSubject] = useState(subjects[0] ?? "");
-  const [mins, setMins] = useState(30);
-  const [more, setMore] = useState(false);
-  const submit = () => {
-    const t = title.trim();
-    if (!t) return;
-    addTask({ examId, title: t, type: "practice", dueDate: d, durationMinutes: mins, priority: "medium", subject: subject || undefined, reason: "Added by you." });
-    setTitle("");
-    toast("Added to today's plan");
-  };
-  return (
-    <form className="card space-y-2.5 p-2.5 pb-3" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-      <div className="flex items-center gap-2">
-        <label htmlFor="quick-add" className="sr-only">Add a task for today</label>
-        <input id="quick-add" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Add a task for today…" autoComplete="off"
-          className="field h-11 min-w-0 flex-1 !text-[17px]" />
-        <button type="button" onClick={() => setMore((v) => !v)} aria-expanded={more} aria-label="More options" className={cn("grid size-11 shrink-0 place-items-center rounded-full", more ? "bg-accent-soft text-accent-text" : "bg-surface-2 text-fg")}>
-          <SlidersHorizontal className="size-[18px]" aria-hidden />
-        </button>
-        <button type="submit" disabled={!title.trim()} aria-label="Add task" className="grid size-11 shrink-0 place-items-center rounded-full bg-accent text-white disabled:opacity-40">
-          <Plus className="size-5" aria-hidden />
-        </button>
-      </div>
-      {subjects.length > 0 && (
-        <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Subject">
-          {subjects.map((s) => (
-            <button key={s} type="button" role="radio" aria-checked={subject === s} onClick={() => setSubject(s)}
-              className={cn("h-8 rounded-full border-[1.5px] px-3 text-[13px] font-bold transition", subjectClass(s),
-                subject === s ? "border-[var(--dot)] bg-[var(--tint)] text-[var(--ink)]" : "border-border bg-surface text-fg-3")}>
-              {s}
-            </button>
-          ))}
-        </div>
-      )}
-      {more && (
-        <div className="flex flex-wrap items-center gap-2 px-1 animate-in">
-          <span className="text-[13px] font-bold text-fg-3">Length</span>
-          {[15, 30, 45, 60, 90].map((m) => (
-            <button key={m} type="button" onClick={() => setMins(m)} aria-pressed={mins === m}
-              className={cn("h-8 rounded-[11px] px-3 text-[13px] font-bold", mins === m ? "bg-accent text-white" : "bg-surface-2 text-fg-2")}>{m} min</button>
-          ))}
-        </div>
-      )}
-    </form>
   );
 }
